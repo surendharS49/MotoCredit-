@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap');
+
+.login-root {
+  @apply relative flex min-h-screen flex-col bg-slate-50 overflow-x-hidden;
+}
+
+.layout-container {
+  @apply flex h-full flex-col grow;
+}
+
+.header {
+  @apply flex items-center justify-between border-b border-[#e7edf3] px-10 py-3;
+}
+
+.logo-group {
+  @apply flex items-center gap-4 text-[#0e141b];
+}
+
+.logo-icon {
+  @apply size-4;
+}
+
+.logo-text {
+  @apply text-lg font-bold leading-tight tracking-tight text-[#0e141b];
+}
+
+.content {
+  @apply px-40 py-5 flex justify-center flex-1;
+}
+
+.form-container {
+  @apply w-full max-w-[512px] py-5 flex flex-col;
+}
+
+.form-title {
+  @apply text-[28px] font-bold leading-tight text-center text-[#0e141b] px-4 pb-3 pt-5;
+}
+
+.form-group {
+  @apply flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3;
+}
+
+.form-label {
+  @apply flex flex-col min-w-40 flex-1;
+}
+
+.form-label p {
+  @apply text-[#0e141b] text-base font-medium pb-2;
+}
+
+.form-input {
+  @apply w-full h-14 p-[15px] text-base font-normal leading-normal text-[#0e141b] placeholder-[#4e7097] border border-[#d0dbe7] bg-slate-50 rounded-lg focus:outline-none focus:border-[#d0dbe7];
+}
+
+.password-wrapper {
+  @apply flex w-full items-stretch rounded-lg;
+}
+
+.password-input {
+  @apply rounded-r-none border-r-0 pr-2;
+}
+
+.eye-icon {
+  @apply text-[#4e7097] flex items-center justify-center pr-[15px] bg-slate-50 border border-[#d0dbe7] rounded-r-lg border-l-0;
+}
+
+.form-action {
+  @apply flex px-4 py-3;
+}
+
+.login-button {
+  @apply h-10 px-4 min-w-[84px] w-full max-w-[480px] cursor-pointer flex items-center justify-center overflow-hidden rounded-lg bg-[#1978e5] text-slate-50 text-sm font-bold leading-normal tracking-wide;
+}
+
+.signup-link {
+  @apply text-[#4e7097] text-sm text-center underline font-normal leading-normal pb-3 pt-1 px-4;
+}
