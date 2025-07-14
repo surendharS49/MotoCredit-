@@ -23,15 +23,29 @@ router.post('/register', async (req, res) => {
 // Login admin
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const admin = await Admin.findOne({ username });
-    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    const { username, email, password } = req.body;
+    // Find admin by username OR email (either is acceptable for login)
+    let   admins = await Admin.find();
+    let adminFound = false;
+    let foundAdmin;
+    if (!admins) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+    admins.forEach((admin) => {
+      if (admin.username === username || admin.email === email) {
+        console.log("admin found");
+        adminFound = true;
+        foundAdmin = admin;
+      }
+    });
+    
+    if (!adminFound) return res.status(404).json({ message: 'Admin not found' });
 
-    const isMatch = await bcrypt.compare(password, admin.password);
+    const isMatch = await bcrypt.compare(password, foundAdmin.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign(
-      { id: admin._id, username: admin.username, role: admin.role },
+      { id: foundAdmin._id, username: foundAdmin.username, role: foundAdmin.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
@@ -41,6 +55,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Protected route (dashboard)
 const { verifyToken } = require('./middleware');

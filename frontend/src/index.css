@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-50 text-[#0e141b] font-sans min-h-screen antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold text-[#0e141b];
+}
+
+a {
+  @apply text-primary hover:text-primary-dark transition-colors underline underline-offset-2;
+}
+
+input, button, textarea, select {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-light;
+}

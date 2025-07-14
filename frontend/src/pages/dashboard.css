@@ -1,0 +1,66 @@
+/* Dashboard responsive table column hiding with CSS container queries.
+   Uses the native CSS @container rule (requires supporting browser or Tailwind container-queries plugin).
+   The parent table gets the class `recent-loans-table`. Columns are hidden progressively on smaller widths.
+*/
+
+.recent-loans-table {
+  /* Enable inline-size container queries on the table element */
+  container-type: inline-size;
+}
+
+/* Hide Date column (<th>/<td> index 4) when container below 600px */
+@container (max-width: 600px) {
+  .recent-loans-table th:nth-child(4),
+  .recent-loans-table td:nth-child(4) {
+    display: none;
+  }
+}
+
+/* Hide Amount column (<th>/<td> index 3) below 480px */
+@container (max-width: 480px) {
+  .recent-loans-table th:nth-child(3),
+  .recent-loans-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+/* Hide Customer column (<th>/<td> index 2) below 360px */
+@container (max-width: 360px) {
+  .recent-loans-table th:nth-child(2),
+  .recent-loans-table td:nth-child(2) {
+    display: none;
+  }
+}
+
+/* Profile dropdown animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease;
+}
+
+/* Status badge styles (for color-coded loan statuses) */
+.bg-green-100 { background-color: #d1fae5 !important; }
+.text-green-700 { color: #047857 !important; }
+.bg-yellow-100 { background-color: #fef9c3 !important; }
+.text-yellow-700 { color: #b45309 !important; }
+.bg-red-100 { background-color: #fee2e2 !important; }
+.text-red-700 { color: #b91c1c !important; }
+
+/* Card hover effect */
+.hover\:shadow-lg:hover {
+  box-shadow: 0 8px 24px 0 rgba(16,30,54,0.10), 0 1.5px 4px 0 rgba(16,30,54,0.08);
+}
+
+/* Responsive grid for KPI cards */
+@media (max-width: 640px) {
+  .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
