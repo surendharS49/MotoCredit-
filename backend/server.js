@@ -4,7 +4,15 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// More detailed CORS configuration
+app.use(cors({
+  origin: 'http://localhost:5173', // Replace with your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Connect to MongoDB
@@ -21,11 +29,16 @@ mongoose.connect(mongoUri, {
 
     // Load and mount routes AFTER the connection is ready
   const createCustomerRoutes = require('./admin/src/createcustomer');
-  const adminRoutes = require('./admin/auth/adminAuthRoutes');
+  const adminRoutes = require('./admin/auth/adminAuthRoutes');  
+  const vehicleRoutes = require('./admin/vehicle/vehiclerouters');
+  const guarantorRoutes = require('./admin/Guarantor/Guarantorroutes');
+  const loanRoutes = require('./admin/loan/createloan');
   // const createcustomer = require('./admin/src/createcustomer');
   app.use('/admin', adminRoutes);
   app.use('/admin', createCustomerRoutes);
-
+  app.use('/admin', vehicleRoutes);
+  app.use('/admin', guarantorRoutes);
+  app.use('/admin', loanRoutes);
   // app.get('/', (req, res) => res.send('API running'));
   // Start server
   const PORT = process.env.PORT || 3000;

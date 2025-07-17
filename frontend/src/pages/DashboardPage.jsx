@@ -1,102 +1,145 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './dashboard.css';
 import { Link } from 'react-router-dom';
 import logo from '../assets/motocredit-logo.png';
 import { FaUsers, FaMoneyCheckAlt, FaWallet, FaExclamationCircle } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Customers from '../components/customers/customers';
+import Navbar from '../components/Navbar/Navbar';
 
 const adminName = () => {
   const admin = localStorage.getItem('user');
   return admin ? JSON.parse(admin).name : '';
 };
 
-const kpiData = [
-  {
-    label: 'Total Customers',
-    value: '1,250',
-    icon: <FaUsers size={28} className="text-blue-500" />,
-    gradient: 'from-blue-100 to-blue-50',
-  },
-  {
-    label: 'Active Loans',
-    value: '875',
-    icon: <FaWallet size={28} className="text-green-500" />,
-    gradient: 'from-green-100 to-green-50',
-  },
-  {
-    label: 'Total Disbursed Amount',
-    value: '$5,500,000',
-    icon: <FaMoneyCheckAlt size={28} className="text-purple-500" />,
-    gradient: 'from-purple-100 to-purple-50',
-  },
-  {
-    label: 'Overdue EMIs',
-    value: '32',
-    icon: <FaExclamationCircle size={28} className="text-red-500" />,
-    gradient: 'from-red-100 to-red-50',
-  },
-];
-
-const emiData = [
-  { month: 'Jan', value: 5000 },
-  { month: 'Feb', value: 6000 },
-  { month: 'Mar', value: 10000 },
-  { month: 'Apr', value: 3000 },
-  { month: 'May', value: 9000 },
-  { month: 'Jun', value: 4000 },
-  { month: 'Jul', value: 7000 },
-  { month: 'Aug', value: 8000 },
-];
-
-const allLoans = [
-  {
-    id: 'LN00123',
-    name: 'Emily Carter',
-    amount: '$10,000',
-    date: '2023-08-15',
-    status: 'Active',
-  },
-  {
-    id: 'LN00124',
-    name: 'David Lee',
-    amount: '$5,000',
-    date: '2023-09-01',
-    status: 'Paid',
-  },
-  {
-    id: 'LN00125',
-    name: 'Olivia Brown',
-    amount: '$7,500',
-    date: '2023-09-15',
-    status: 'Active',
-  },
-  {
-    id: 'LN00126',
-    name: 'Ethan Clark',
-    amount: '$12,000',
-    date: '2023-10-01',
-    status: 'Active',
-  },
-  {
-    id: 'LN00127',
-    name: 'Sophia Green',
-    amount: '$8,000',
-    date: '2023-10-15',
-    status: 'Paid',
-  },
-];
-
-const statusColors = {
-  Paid: 'bg-green-100 text-green-700',
-  Active: 'bg-yellow-100 text-yellow-700',
-  Overdue: 'bg-red-100 text-red-700',
-};
-
 const DashboardPage = () => {
   const [search, setSearch] = useState('');
+  const [totalDisbursedAmount, setTotalDisbursedAmount] = useState(0);
+  const [overdueEmis, setOverdueEmis] = useState(0);
+  const [adminName, setAdminName] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard'); // Add this state
+  const [customerCount, setCustomerCount] = useState(0);
+  const [loanCount, setLoanCount] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const admin = localStorage.getItem('user');
+    setAdminName(admin ? JSON.parse(admin).name : '');
+  }, []);
+
+  useEffect(() => {
+    const fetchCustomerCount = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/admin/customers');
+        const data = await response.json();
+        setCustomerCount(data.length);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        setCustomerCount(0);
+      }
+    };
+
+    fetchCustomerCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchLoanCount = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/admin/loans');
+        const data = await response.json();
+        setLoanCount(data.length);
+      } catch (error) {
+        console.error('Error fetching loans:', error);
+        setLoanCount(0);
+      }
+    };
+
+    fetchLoanCount(); 
+  }, []);
+
+  const kpiData = [
+    {
+      label: 'Total Customers',
+      value: customerCount,
+      icon: <FaUsers size={28} className="text-blue-500" />,
+      gradient: 'from-blue-100 to-blue-50',
+    },
+    {
+      label: 'Active Loans',
+      value: loanCount,
+      icon: <FaWallet size={28} className="text-green-500" />,
+      gradient: 'from-green-100 to-green-50',
+    },
+    {
+      label: 'Total Disbursed Amount',
+      value: '$5,500,000',
+      icon: <FaMoneyCheckAlt size={28} className="text-purple-500" />,
+      gradient: 'from-purple-100 to-purple-50',
+    },
+    {
+      label: 'Overdue EMIs',
+      value: '32',
+      icon: <FaExclamationCircle size={28} className="text-red-500" />,
+      gradient: 'from-red-100 to-red-50',
+    },
+  ];
+
+  const emiData = [
+    { month: 'Jan', value: 5000 },
+    { month: 'Feb', value: 6000 },
+    { month: 'Mar', value: 10000 },
+    { month: 'Apr', value: 3000 },
+    { month: 'May', value: 9000 },
+    { month: 'Jun', value: 4000 },
+    { month: 'Jul', value: 7000 },
+    { month: 'Aug', value: 8000 },
+  ];
+
+  const allLoans = [
+    {
+      id: 'LN00123',
+      name: 'Emily Carter',
+      amount: '$10,000',
+      date: '2023-08-15',
+      status: 'Active',
+    },
+    {
+      id: 'LN00124',
+      name: 'David Lee',
+      amount: '$5,000',
+      date: '2023-09-01',
+      status: 'Paid',
+    },
+    {
+      id: 'LN00125',
+      name: 'Olivia Brown',
+      amount: '$7,500',
+      date: '2023-09-15',
+      status: 'Active',
+    },
+    {
+      id: 'LN00126',
+      name: 'Ethan Clark',
+      amount: '$12,000',
+      date: '2023-10-01',
+      status: 'Active',
+    },
+    {
+      id: 'LN00127',
+      name: 'Sophia Green',
+      amount: '$8,000',
+      date: '2023-10-15',
+      status: 'Paid',
+    },
+  ];
+
+  const statusColors = {
+    Paid: 'bg-green-100 text-green-700',
+    Active: 'bg-yellow-100 text-yellow-700',
+    Overdue: 'bg-red-100 text-red-700',
+  };
 
   const filteredLoans = allLoans.filter(
     (loan) =>
@@ -105,94 +148,20 @@ const DashboardPage = () => {
   );
 
   return (
-    <div
-      className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
-      style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}
-    >
+    <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden">
       <div className="layout-container flex h-full grow flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3">
-          <div className="flex items-center gap-4 text-[#0e141b]">
-            <img src={logo} alt="MotoCredit logo" className="h-6 w-6" style={{ width: '40px', height: '40px' }} />
-            <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">MotoCredit</h2>
-          </div>
-
-          {/* Primary navigation */}
-          <div className="flex flex-1 justify-end gap-8">
-            <nav className="hidden gap-8 md:flex">
-              <button
-                onClick={() => setCurrentView('dashboard')}
-                className={`text-sm font-medium ${
-                  currentView === 'dashboard' ? 'text-blue-600' : 'text-gray-700 hover:text-primary-600'
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => setCurrentView('customers')}
-                className={`text-sm font-medium ${
-                  currentView === 'customers' ? 'text-blue-600' : 'text-gray-700 hover:text-primary-600'
-                }`}
-              >
-                Customers
-              </button>
-              <button
-                onClick={() => setCurrentView('loans')}
-                className={`text-sm font-medium ${
-                  currentView === 'loans' ? 'text-blue-600' : 'text-gray-700 hover:text-primary-600'
-                }`}
-              >
-                Loans   
-              </button>
-              <button
-                onClick={() => setCurrentView('reports')}
-                className={`text-sm font-medium ${
-                  currentView === 'reports' ? 'text-blue-600' : 'text-gray-700 hover:text-primary-600'
-                }`}
-              >
-                Reports
-              </button>
-              <button
-                onClick={() => setCurrentView('settings')}
-                className={`text-sm font-medium ${
-                  currentView === 'settings' ? 'text-blue-600' : 'text-gray-700 hover:text-primary-600'
-                }`}
-              >
-                Settings
-              </button>
-            </nav>
-
-            {/* Avatar with dropdown */}
-            <div className="relative">
-              <div
-                className="aspect-square size-10 rounded-full bg-center bg-cover bg-no-repeat cursor-pointer border-2 border-slate-200 hover:border-blue-400 transition"
-                style={{
-                  backgroundImage:
-                    'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBqqDd8lRt8um7x-iQsfUULf2Tkv1q-TLO9vhqiZ9oZeZ9_dqi8cBgreXbFI1eu6VpIDlOb7NC86jX1BFkFQVw3k_Cdg9CEetu_srDBE6c8Vg8_fSadRdvn02G0YpcpXs5muh0STp_337eQMF9o291kkb-zg2U_uGmSekyKrpphvkV9imP2PtKbQtls93erFBTIteAZzhk5nHhVTyHTFWTgUv58NwltR1mq7zAAT18wIXlMVmahY3M4i7yrwX6dm4WyWv65aoMJSY0")',
-                }}
-                onClick={() => setDropdownOpen((v) => !v)}
-              />
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-40 rounded-lg bg-white shadow-lg border z-50 animate-fade-in">
-                  <button className="block w-full px-4 py-2 text-left text-sm hover:bg-slate-100">Profile</button>
-                  <button className="block w-full px-4 py-2 text-left text-sm hover:bg-slate-100">Logout</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
+        <Navbar />
         {/* Main content */}
-        <div className="flex flex-1 justify-center p-5">
+        <div className="p-8">
           <div className="layout-content-container container mx-auto flex flex-1 flex-col">
-            {currentView === 'dashboard' ? (
-              <>
-                {/* Greeting */}
-                <div className="flex flex-wrap justify-between gap-3 p-4">
-                  <p className="min-w-72 text-[32px] font-bold leading-tight tracking-light text-[#0e141b]">
-                    {adminName() ? `Welcome back, ${adminName()}` : "Welcome back,"}
-                  </p>
-                </div>
+            {/* Dashboard content */}
+            <>
+              {/* Greeting */}
+              <div className="flex flex-wrap justify-between gap-3 p-4">
+                <p className="min-w-72 text-[32px] font-bold leading-tight tracking-light text-[#0e141b]">
+                  {adminName ? `Welcome back, ${adminName}` : "Welcome back,"}
+                </p>
+              </div>
 
                 {/* KPI cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
@@ -301,10 +270,7 @@ const DashboardPage = () => {
                     </table>
                   </div>
                 </div>
-              </>
-            ) : (
-              <Customers />
-            )}
+            </>
           </div>
         </div>
       </div>

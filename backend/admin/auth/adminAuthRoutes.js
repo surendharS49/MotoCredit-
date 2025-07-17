@@ -32,7 +32,7 @@ router.post('/login', async (req, res) => {
       return res.status(404).json({ message: 'Admin not found' });
     }
     admins.forEach((admin) => {
-      if (admin.username === username || admin.email === email) {
+      if (admin.username.toLowerCase() === username.toLowerCase() || admin.email.toLowerCase() === email.toLowerCase()) {
         console.log("admin found");
         adminFound = true;
         foundAdmin = admin;

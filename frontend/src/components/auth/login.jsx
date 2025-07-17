@@ -1,76 +1,153 @@
-import React from 'react';
-import logo from '../../assets/motocredit-logo.png';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import logo from '../../assets/motocredit-logo.png';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  //const [error, setError] = useState('');
-  const handleAdminLogin = () => {
-    navigate('/admin');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Here you would typically make your API call
+      // For now, we'll simulate a login
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError('Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-light via-white to-slate-100">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center">
-        <div className="flex items-center gap-3 mb-8">
-          <img src={logo} alt="MotoCredit logo" className="w-12 h-12" />
-          <h2 className="text-2xl font-extrabold tracking-tight text-primary">MotoCredit</h2>
-        </div>
-        <h2 className="text-xl font-bold mb-6 text-center">Welcome back</h2>
-        <form className="w-full flex flex-col gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 text-[#0e141b]">Email</label>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full h-12 px-4 rounded-lg border border-slate-300 bg-slate-50 focus:border-primary focus:ring-2 focus:ring-primary-light text-base"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-slate-50">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-8">
+        {/* Logo and Title */}
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <img src={logo} alt="MotoCredit logo" className="w-12 h-12" />
+            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">MotoCredit</h2>
           </div>
+          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
+          <p className="mt-2 text-sm text-gray-600">Please enter your details to sign in</p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm flex items-center justify-center">
+            {error}
+          </div>
+        )}
+
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-1 text-[#0e141b]">Password</label>
-            <div className="relative flex items-center">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaEnvelope className="h-5 w-5 text-gray-400" />
+              </div>
               <input
-                type="password"
+                type="email"
+                placeholder="Enter your email"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaLock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className="w-full h-12 px-4 rounded-lg border border-slate-300 bg-slate-50 focus:border-primary focus:ring-2 focus:ring-primary-light text-base pr-12"
+                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <span className="absolute right-3 text-slate-400 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                  <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z" />
-                </svg>
-              </span>
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <FaEyeSlash className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <FaEye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
             </div>
           </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
+            <button
+              type="button"
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              onClick={() => navigate('/admin/forgot-password')}
+            >
+              Forgot password?
+            </button>
+          </div>
+
           <button
-            type="button"
-            className="mt-2 h-12 rounded-lg bg-primary hover:bg-primary-dark text-white font-semibold text-base shadow-md transition-colors"
-            onClick={() => {
-              if (email && password) {
-                // Here you would typically handle the login logic, e.g., API call
-                console.log('Logging in with:', { email, password });
-                // setError('');
-              } else {
-                // setError('Please enter both email and password');
-              }
-            }}
+            type="submit"
+            disabled={isLoading}
+            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              isLoading ? 'opacity-75 cursor-not-allowed' : ''
+            }`}
           >
-            Login
+            {isLoading ? (
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : 'Sign in'}
           </button>
         </form>
-        <button
-          className="mt-4 text-primary hover:text-primary-dark underline text-sm font-medium transition-colors"
-          onClick={handleAdminLogin}
-        >
-          Admin login
-        </button>
+
+        {/* Admin Login Link */}
+        <div className="text-center">
+          <span className="text-sm text-gray-500">Need admin access? </span>
+          <button
+            type="button"
+            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            onClick={() => navigate('/admin')}
+          >
+            Sign in as admin
+          </button>
+        </div>
       </div>
     </div>
   );
