@@ -1,7 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const connectDB = require('./src/config/database');
 
 const app = express();
 
@@ -16,37 +16,26 @@ app.use(cors({
 app.use(express.json());
 
 // Connect to MongoDB
-const mongoUri = process.env.MONGODB_URI || process.env.MONGODB_URL;
-console.log("mongoUri",mongoUri);
+connectDB().then(() => {
+  // Load routes
+  const adminRoutes = require('./src/routes/admin');
+  const customerRoutes = require('./src/routes/customer');
+  const vehicleRoutes = require('./src/routes/vehicle');
+  const loanRoutes = require('./src/routes/loan');
+  const paymentRoutes = require('./src/features/admin/payments/paymentsroutes');
+  const settingsRoutes = require('./src/routes/settings');
 
-// Connect to MongoDB
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  console.log('MongoDB Connected');
+  // Mount routes
+  app.use('/api/admin', adminRoutes);
+  app.use('/api/customers', customerRoutes);
+  app.use('/api/vehicles', vehicleRoutes);
+  app.use('/api/loans', loanRoutes);
+  app.use('/admin', paymentRoutes);
+  app.use('/api/settings', settingsRoutes);
 
-    // Load and mount routes AFTER the connection is ready
-  const createCustomerRoutes = require('./admin/src/createcustomer');
-  const adminRoutes = require('./admin/auth/adminAuthRoutes');  
-  const vehicleRoutes = require('./admin/vehicle/vehiclerouters');
-  const guarantorRoutes = require('./admin/Guarantor/Guarantorroutes');
-  const loanRoutes = require('./admin/loan/createloan');
-  // const createcustomer = require('./admin/src/createcustomer');
-  app.use('/admin', adminRoutes);
-  app.use('/admin', createCustomerRoutes);
-  app.use('/admin', vehicleRoutes);
-  app.use('/admin', guarantorRoutes);
-  app.use('/admin', loanRoutes);
-  // app.get('/', (req, res) => res.send('API running'));
+  app.get('/', (req, res) => res.send('API running'));
+
   // Start server
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-  app.get('/', (req, res) => res.send('API running'));
-})
-.catch(err => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1);
 });

@@ -1,0 +1,267 @@
+.loan-view-container {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+main {
+    padding: 1rem 0;
+}
+
+.loan-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.loan-card + .loan-card {
+    margin-top: 2rem;
+}
+
+.loan-card h2 {
+    color: #1a237e;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e3f2fd;
+}
+
+.mt-6 {
+    margin-top: 1.5rem;
+}
+
+.loan-form {
+    display: grid;
+    gap: 2rem;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.form-section-title {
+    color: #2196F3;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.form-group {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #424242;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    color: #757575;
+    border-color: #e0e0e0;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e3f2fd;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #43A047;
+    transform: translateY(-1px);
+}
+
+.save-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #1E88E5;
+    transform: translateY(-1px);
+}
+
+.cancel-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #E53935;
+    transform: translateY(-1px);
+}
+
+.error {
+    color: #f44336;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ffcdd2;
+    border-radius: 6px;
+    background-color: #ffebee;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.success {
+    color: #43A047;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #A5D6A7;
+    border-radius: 6px;
+    background-color: #E8F5E9;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: #2196F3;
+    font-size: 1.1rem;
+}
+
+.loading::after {
+    content: '';
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: 0.75rem;
+    border: 2px solid #2196F3;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+} 
+
+/* Add these new styles */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Update existing styles */
+.loan-card {
+    @apply bg-white rounded-lg shadow-sm p-6 transition-all duration-200;
+}
+
+.loan-card:hover {
+    @apply shadow-md;
+}
+
+.form-section {
+    @apply bg-gray-50 rounded-lg p-6 mb-6 last:mb-0;
+}
+
+.form-section-title {
+    @apply text-lg font-semibold text-gray-900 mb-4;
+}
+
+.form-group {
+    @apply grid grid-cols-1 md:grid-cols-[200px,1fr] gap-4 mb-4 last:mb-0 items-center;
+}
+
+.form-group label {
+    @apply text-sm font-medium text-gray-700;
+}
+
+.form-group input,
+.form-group select {
+    @apply w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200;
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+    @apply bg-gray-50 cursor-not-allowed text-gray-500;
+}
+
+.btn {
+    @apply inline-flex items-center px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.edit-btn {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.save-btn {
+    @apply bg-green-600 text-white hover:bg-green-700;
+}
+
+.cancel-btn {
+    @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+} 
+
+/* Add to existing styles */
+.copy-btn {
+    @apply p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200;
+}
+
+.form-group .flex input:disabled {
+    @apply bg-gray-50 text-gray-700 font-medium;
+} 

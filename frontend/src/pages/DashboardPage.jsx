@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import './dashboard.css';
-import { Link } from 'react-router-dom';
-import logo from '../assets/motocredit-logo.png';
-import { FaUsers, FaMoneyCheckAlt, FaWallet, FaExclamationCircle } from 'react-icons/fa';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import Customers from '../components/customers/customers';
-import Navbar from '../components/Navbar/Navbar';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import "./dashboard.css";
+import logo from "../assets/motocredit-logo.png";
+import { FaUsers, FaMoneyCheckAlt, FaWallet, FaExclamationCircle } from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Customers } from "../features/customer/components";
+import { Navbar } from "../components/layout";
 
 const adminName = () => {
   const admin = localStorage.getItem('user');
@@ -20,15 +19,151 @@ const DashboardPage = () => {
   const [adminName, setAdminName] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [customerCount, setCustomerCount] = useState(0);
+  const [increasePercentage, setIncreasePercentage] = useState(0);
   const [loanCount, setLoanCount] = useState(0);
+  const [allLoans, setAllLoans] = useState([]);
+  const [totalAmountCollected, setTotalAmountCollected] = useState(0);
+  const [monthlyEmiData, setMonthlyEmiData] = useState([
+    { month: 'Jan', value: 0 },
+    { month: 'Feb', value: 0 },
+    { month: 'Mar', value: 0 },
+    { month: 'Apr', value: 0 },
+    { month: 'May', value: 0 },
+    { month: 'Jun', value: 0 },
+    { month: 'Jul', value: 0 },
+    { month: 'Aug', value: 0 },
+    { month: 'Sep', value: 0 },
+    { month: 'Oct', value: 0 },
+    { month: 'Nov', value: 0 },
+    { month: 'Dec', value: 0 }
+  ]);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const fetchOverdueEmis = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/admin/loans');
+      const data = await response.json();
+      
+      // Calculate overdue EMIs: loans whose nextPaymentDate is before today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
+      
+      const overdueLoans = data.filter(loan => {
+        if (!loan.nextPaymentDate) {
+          return false;
+        }
+        const nextPaymentDate = new Date(loan.nextPaymentDate);
+        nextPaymentDate.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
+        const isOverdue = nextPaymentDate < today && loan.status !== 'Closed';
+        return isOverdue;
+      });
+      
+      const overdueLoansLength = overdueLoans.length;
+      setOverdueEmis(overdueLoansLength);
+    } catch (error) {
+      console.error('Error fetching overdue EMIs:', error);
+      setOverdueEmis(0);
+    }
+    };
+
+  const fetchEmiData = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/admin/payments');
+      const data = await response.json();
+
+      const updatedEmiData = monthlyEmiData.map(month => ({ ...month, value: 0 }));
+
+      data.forEach(payment => {
+        if (payment.paidDate) {
+          const paidDate = new Date(payment.paidDate);
+          const monthIndex = paidDate.getMonth();
+          if (payment.amount) {
+            updatedEmiData[monthIndex].value += Number(payment.amount);
+          }
+        }
+      });
+
+      setMonthlyEmiData(updatedEmiData);
+    } catch (error) {
+      console.error('Error fetching EMI data:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchIncreasePercentage = async () => {
+      try {
+        const monthIndex = new Date().getMonth();
+        let previousmonthearning = 0;
+        let currentmonthearning = 0;
+
+        if (Array.isArray(monthlyEmiData) && monthlyEmiData.length > 0) {
+          if (monthIndex > 0 && monthlyEmiData[monthIndex - 1]) {
+            previousmonthearning = Number(monthlyEmiData[monthIndex - 1].value) || 0;
+          }
+          if (monthlyEmiData[monthIndex]) {
+            currentmonthearning = Number(monthlyEmiData[monthIndex].value) || 0;
+          }
+        }
+
+        let increasePercentage = 0;
+        if (previousmonthearning > 0) {
+          increasePercentage = ((currentmonthearning - previousmonthearning) / previousmonthearning) * 100;
+        } else if (currentmonthearning > 0) {
+          increasePercentage = 100;
+        } else {
+          increasePercentage = 0;
+        }
+        setIncreasePercentage(increasePercentage.toFixed(2));
+      } catch (error) {
+        console.error('Error fetching increase percentage:', error);
+        setIncreasePercentage(0);
+      }
+    };
+    fetchIncreasePercentage();
+  }, [monthlyEmiData]);
+
+  useEffect(() => {
+    const fetchTotalAmountCollected = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/admin/payments');
+        const data = await response.json();
+        const totalAmount = data.reduce((sum, payment) => sum + payment.amount, 0);
+        setTotalAmountCollected(totalAmount);
+      } catch (error) {
+        console.error('Error fetching total amount collected:', error);
+        setTotalAmountCollected(0);
+      }
+    };
+    fetchTotalAmountCollected();
+  }, []);
+
+  // Fetch data when component mounts
+  useEffect(() => {
+    fetchOverdueEmis();
+    fetchEmiData();
+  }, []);
 
   useEffect(() => {
     const admin = localStorage.getItem('user');
     setAdminName(admin ? JSON.parse(admin).name : '');
   }, []);
 
+  useEffect(() => {
+    const fetchTotalDisbursedAmount = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/admin/loans');
+        const data = await response.json();
+        const totalAmount = data.reduce((sum, loan) => sum + loan.loanAmount, 0);
+        setTotalDisbursedAmount(totalAmount);
+      } catch (error) {
+        console.error('Error fetching loans:', error);
+        setTotalDisbursedAmount(0);
+      }
+    };
+
+    fetchTotalDisbursedAmount();
+  },[]);
   useEffect(() => {
     const fetchCustomerCount = async () => {
       try {
@@ -74,66 +209,42 @@ const DashboardPage = () => {
     },
     {
       label: 'Total Disbursed Amount',
-      value: '$5,500,000',
+      value: totalDisbursedAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
       icon: <FaMoneyCheckAlt size={28} className="text-purple-500" />,
       gradient: 'from-purple-100 to-purple-50',
     },
     {
       label: 'Overdue EMIs',
-      value: '32',
+      value: overdueEmis|| 0,
       icon: <FaExclamationCircle size={28} className="text-red-500" />,
       gradient: 'from-red-100 to-red-50',
     },
   ];
 
-  const emiData = [
-    { month: 'Jan', value: 5000 },
-    { month: 'Feb', value: 6000 },
-    { month: 'Mar', value: 10000 },
-    { month: 'Apr', value: 3000 },
-    { month: 'May', value: 9000 },
-    { month: 'Jun', value: 4000 },
-    { month: 'Jul', value: 7000 },
-    { month: 'Aug', value: 8000 },
-  ];
-
-  const allLoans = [
-    {
-      id: 'LN00123',
-      name: 'Emily Carter',
-      amount: '$10,000',
-      date: '2023-08-15',
-      status: 'Active',
-    },
-    {
-      id: 'LN00124',
-      name: 'David Lee',
-      amount: '$5,000',
-      date: '2023-09-01',
-      status: 'Paid',
-    },
-    {
-      id: 'LN00125',
-      name: 'Olivia Brown',
-      amount: '$7,500',
-      date: '2023-09-15',
-      status: 'Active',
-    },
-    {
-      id: 'LN00126',
-      name: 'Ethan Clark',
-      amount: '$12,000',
-      date: '2023-10-01',
-      status: 'Active',
-    },
-    {
-      id: 'LN00127',
-      name: 'Sophia Green',
-      amount: '$8,000',
-      date: '2023-10-15',
-      status: 'Paid',
-    },
-  ];
+useEffect(()=>{
+  fetchLoans();
+},[]);
+const fetchLoans=async()=>{
+  try {
+    const response = await fetch('http://localhost:3000/admin/loans');
+    const data = await response.json();
+    
+    // Transform the data to match our table structure
+    const transformedLoans = data.map(loan => ({
+      loanId: loan.loanId,
+      customerID: loan.customerId || 'N/A',
+      loanAmount: Number(loan.loanAmount) || 0,
+      tenure: loan.tenure || 0,
+      createdAt: loan.createdAt || new Date().toISOString(),
+      status: loan.status || 'Pending'
+    }));
+    
+    setAllLoans(transformedLoans);
+  } catch (error) {
+    console.error('Error fetching loans:', error);
+    setAllLoans([]);
+  }
+}
 
   const statusColors = {
     Paid: 'bg-green-100 text-green-700',
@@ -141,10 +252,19 @@ const DashboardPage = () => {
     Overdue: 'bg-red-100 text-red-700',
   };
 
+  const tableHeaders = [
+    { label: 'Loan ID', key: 'loanId' },
+    { label: 'Customer ID', key: 'customerID' },
+    { label: 'Amount', key: 'loanAmount' },
+    { label: 'Months', key: 'tenure' },
+    { label: 'Disbursed Date', key: 'createdAt' },
+    { label: 'Status', key: 'status' }
+  ];
+
   const filteredLoans = allLoans.filter(
     (loan) =>
-      loan.id.toLowerCase().includes(search.toLowerCase()) ||
-      loan.name.toLowerCase().includes(search.toLowerCase())
+      loan.loanId?.toLowerCase().includes(search.toLowerCase()) ||
+      loan.customerID?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -181,24 +301,24 @@ const DashboardPage = () => {
 
                 {/* EMI Due chart */}
                 <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#0e141b]">
-                  EMI Due
+                  Amount
                 </h2>
                 <div className="flex flex-wrap gap-4 px-4 py-6">
                   <div className="flex min-w-72 flex-1 flex-col gap-2">
-                    <p className="text-base font-medium leading-normal text-[#0e141b]">EMI Due</p>
-                    <p className="truncate text-[32px] font-bold leading-tight tracking-light text-[#0e141b]">12,500</p>
+                    <p className="text-base font-medium leading-normal text-[#0e141b]">Total Amount collected</p>
+                    <p className="truncate text-[32px] font-bold leading-tight tracking-light text-[#0e141b]">{totalAmountCollected.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
                     <div className="flex gap-1">
                       <p className="text-base font-normal leading-normal text-[#4e7097]">This Month</p>
-                      <p className="text-base font-medium leading-normal text-[#07883b]">+5%</p>
+                      <p className="text-base font-medium leading-normal text-[#07883b]">{increasePercentage}%</p>
                     </div>
                     <div className="w-full h-56">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={emiData}>
+                        <BarChart data={monthlyEmiData}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="month" />
                           <YAxis />
                           <Tooltip />
-                          <Bar dataKey="value" fill="#4e7097" radius={[8, 8, 0, 0]} />
+                          <Bar dataKey="value" fill="#8884d8" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -217,55 +337,51 @@ const DashboardPage = () => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
-                  <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-                    <table className="recent-loans-table flex-1">
-                      <thead>
-                        <tr className="bg-slate-50">
-                          <th className="w-[200px] px-4 py-3 text-left text-sm font-medium leading-normal text-[#0e141b]">
-                            Loan ID
-                          </th>
-                          <th className="w-[200px] px-4 py-3 text-left text-sm font-medium leading-normal text-[#0e141b]">
-                            Customer Name
-                          </th>
-                          <th className="w-[200px] px-4 py-3 text-left text-sm font-medium leading-normal text-[#0e141b]">
-                            Loan Amount
-                          </th>
-                          <th className="w-[200px] px-4 py-3 text-left text-sm font-medium leading-normal text-[#0e141b]">
-                            Disbursed Date
-                          </th>
-                          <th className="w-60 px-4 py-3 text-left text-sm font-medium leading-normal text-[#0e141b]">
-                            Status
-                          </th>
+                  {/* Table section */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {tableHeaders.map((header) => (
+                            <th
+                              key={header.key}
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              {header.label}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
-                      <tbody>
-                        {filteredLoans.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="text-center py-6 text-slate-400">No loans found.</td>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredLoans.map((loan) => (
+                          <tr key={loan.loanId}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {loan.loanId}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {loan.customerID}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {loan.loanAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {loan.tenure}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(loan.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  statusColors[loan.status] || 'bg-gray-100 text-gray-800'
+                                }`}
+                              >
+                                {loan.status}
+                              </span>
+                            </td>
                           </tr>
-                        ) : (
-                          filteredLoans.map((loan) => (
-                            <tr key={loan.id} className="border-t border-t-[#d0dbe7]">
-                              <td className="w-[200px] px-4 py-2 text-sm font-normal leading-normal text-[#4e7097]">
-                                {loan.id}
-                              </td>
-                              <td className="w-[200px] px-4 py-2 text-sm font-normal leading-normal text-[#0e141b]">
-                                {loan.name}
-                              </td>
-                              <td className="w-[200px] px-4 py-2 text-sm font-normal leading-normal text-[#4e7097]">
-                                {loan.amount}
-                              </td>
-                              <td className="w-[200px] px-4 py-2 text-sm font-normal leading-normal text-[#4e7097]">
-                                {loan.date}
-                              </td>
-                              <td className="w-60 px-4 py-2 text-sm font-normal leading-normal">
-                                <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusColors[loan.status] || 'bg-slate-200 text-slate-700'}`}>
-                                  {loan.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
+                        ))}
                       </tbody>
                     </table>
                   </div>
