@@ -3,7 +3,6 @@ const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./src/config/database');
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 const app = express();
 
@@ -17,10 +16,10 @@ app.use(cors({
 
 app.use(express.json());
 
-// Add default route for health check
+// Health check route
 app.get('/', (req, res) => res.send('API running ✅'));
 
-// Mount routes (do this even before DB is connected)
+// Mount routes
 const adminRoutes = require('./src/routes/admin');
 const customerRoutes = require('./src/routes/customer');
 const vehicleRoutes = require('./src/routes/vehicle');
@@ -35,9 +34,10 @@ app.use('/api/loans', loanRoutes);
 app.use('/admin', paymentRoutes);
 app.use('/api/settings', settingsRoutes);
 
-// Connect to MongoDB (but don't delay the server)
+// Connect to MongoDB (non-blocking)
 connectDB()
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection failed:', err));
 
-// Start server
+// ✅ Start server after setting up routes
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
