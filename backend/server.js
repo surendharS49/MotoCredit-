@@ -5,9 +5,9 @@ const connectDB = require('./src/config/database');
 
 const app = express();
 
-// More detailed CORS configuration
+// CORS
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://motocredit.onrender.com'], // Replace with your frontend URL
+  origin: ['http://localhost:5173', 'https://motocredit.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -15,27 +15,29 @@ app.use(cors({
 
 app.use(express.json());
 
-// Connect to MongoDB
-connectDB().then(() => {
-  // Load routes
-  const adminRoutes = require('./src/routes/admin');
-  const customerRoutes = require('./src/routes/customer');
-  const vehicleRoutes = require('./src/routes/vehicle');
-  const loanRoutes = require('./src/routes/loan');
-  const paymentRoutes = require('./src/features/admin/payments/paymentsroutes');
-  const settingsRoutes = require('./src/routes/settings');
+// Add default route for health check
+app.get('/', (req, res) => res.send('API running ✅'));
 
-  // Mount routes
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/customers', customerRoutes);
-  app.use('/api/vehicles', vehicleRoutes);
-  app.use('/api/loans', loanRoutes);
-  app.use('/admin', paymentRoutes);
-  app.use('/api/settings', settingsRoutes);
+// Mount routes (do this even before DB is connected)
+const adminRoutes = require('./src/routes/admin');
+const customerRoutes = require('./src/routes/customer');
+const vehicleRoutes = require('./src/routes/vehicle');
+const loanRoutes = require('./src/routes/loan');
+const paymentRoutes = require('./src/features/admin/payments/paymentsroutes');
+const settingsRoutes = require('./src/routes/settings');
 
-  app.get('/', (req, res) => res.send('API running'));
+app.use('/api/admin', adminRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/loans', loanRoutes);
+app.use('/admin', paymentRoutes);
+app.use('/api/settings', settingsRoutes);
 
-  // Start server
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+// Connect to MongoDB (but don't delay the server)
+connectDB()
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection failed:', err));
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
