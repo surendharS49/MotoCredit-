@@ -8,7 +8,7 @@ const app = express();
 
 // CORS
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://motocredit.netlify.app'],
+  origin: ['http://localhost:5173', 'https://motocredit.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -36,8 +36,14 @@ app.use('/api/settings', settingsRoutes);
 
 // Connect to MongoDB (non-blocking)
 connectDB()
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection failed:', err));
-
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ DB connection failed:', err);
+    process.exit(1); // Kill process so Render knows it's broken
+  });
 // ✅ Start server after setting up routes
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
