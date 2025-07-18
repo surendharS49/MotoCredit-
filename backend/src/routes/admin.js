@@ -3,7 +3,6 @@ const router = express.Router();
 const Admin = require('../models/Admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const
 const { verifyToken } = require('../middleware/auth');
 
 // Utility function to compare plain and hashed passwords
