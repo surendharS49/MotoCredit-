@@ -5,6 +5,7 @@ const Payment = require('../models/Payment');
 const Guarantor = require('../models/Guarantor');
 
 const generateCustomerId = async () => {
+    console.log("Generating customer ID...");
     let customerId;
     let exists = true;
     while (exists) {
@@ -16,6 +17,7 @@ const generateCustomerId = async () => {
 };
 
 const generateVehicleId = async () => {
+    console.log("Generating vehicle ID...");
     let vehicleId;
     let exists = true;
     while (exists) {
@@ -26,6 +28,7 @@ const generateVehicleId = async () => {
 };
 
 const generateLoanId = async () => {
+    console.log("Generating loan ID...");
     const latestLoan = await Loan.findOne({}).sort({ loanId: -1 }).lean();
     if (!latestLoan) {
         return 'LO-0001';
@@ -37,6 +40,7 @@ const generateLoanId = async () => {
 };
 
 const generatePaymentId = async () => {
+    console.log("Generating payment ID...");
     let paymentId;
     let exists = true;
     while (exists) {
@@ -47,6 +51,7 @@ const generatePaymentId = async () => {
 };
 
 const generateGuarantorId = async () => {
+    console.log("Generating guarantor ID...");
     let guarantorId;
     let exists = true;
     while (exists) {

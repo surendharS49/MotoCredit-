@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
+import api from '../../../utils/api/axiosConfig';
 import { FaArrowLeft } from 'react-icons/fa';
 
 const AddVehicle = () => {
@@ -27,53 +28,17 @@ const AddVehicle = () => {
     setIsLoading(true);
     
     try {
-      // Log the exact data being sent
-      console.log('Sending vehicle data:', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(vehicleData)
-      });
-
-      const response = await fetch('http://localhost:3000/admin/addvehicle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add CORS headers
-          'Accept': 'application/json'
-        },
-        credentials: 'include', // Include credentials if you're using cookies
-        body: JSON.stringify(vehicleData)
-      });
-
-      // Log the response details
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Server error response:', errorData);
-        throw new Error(errorData.message || 'Failed to create vehicle');
-      }
-      
-      const data = await response.json();
-      console.log('Success response:', data);
+      const response = await api.post('/vehicles/addvehicle', vehicleData);
+      const data = response.data;
       
       // Navigate based on mode
       if (isFlowMode) {
-        navigate(`/admin/loans/create?customerId=${customerId}&vehicleId=${data.vehicleId}`);
+        navigate(`/loans/create?customerId=${customerId}&vehicleId=${data.vehicleId}`);
       } else {
-        navigate('/admin/vehicles');
+        navigate('/vehicles');
       }
     } catch (error) {
-      console.error('Detailed error:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
-      // Add user feedback
-      // alert('Failed to create vehicle. Please check console for details.');
+      console.error('Error creating vehicle:', error);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +46,6 @@ const AddVehicle = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Changing ${name} to:`, value); // Add this log
     setVehicleData(prev => ({
       ...prev,
       [name]: value
@@ -98,7 +62,7 @@ const AddVehicle = () => {
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
               <button
-                onClick={() => navigate('/admin/vehicles')}
+                onClick={() => navigate('/vehicles')}
                 className="text-gray-600 hover:text-gray-900"
               >
                 <FaArrowLeft className="h-5 w-5" />
@@ -229,7 +193,7 @@ const AddVehicle = () => {
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate('/admin/vehicles')}
+                  onClick={() => navigate('/vehicles')}
                   className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
                 >
                   Cancel

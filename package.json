@@ -1,5 +1,8 @@
 {
   "name": "motocredit-monorepo",
   "private": true,
-  "description": "Root for MotoCredit project"
+  "description": "Root for MotoCredit project",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }

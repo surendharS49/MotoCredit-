@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
+import api from '../../../utils/api/axiosConfig';
 import { FaSearch, FaEye, FaEdit, FaPlus } from 'react-icons/fa';
 
 const Vehicle = () => {
@@ -8,9 +9,12 @@ const Vehicle = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const getvehicles = async () => {
-    const response = await fetch('http://localhost:3000/admin/getvehicles');
-    const data = await response.json();
-    setVehicles(data);
+    try {
+      const response = await api.get('/vehicles/getallvehicles');
+      setVehicles(response.data);
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+    }
   }
   useEffect(() => {
     getvehicles();
@@ -18,11 +22,11 @@ const Vehicle = () => {
   const [vehicles, setVehicles] = useState([]);
 
   const handleAddVehicle = () => {
-    navigate('/admin/vehicles/add');
+    navigate('/vehicles/add');
   };
 
   const handleEditVehicle = (vehicleId) => {
-    navigate(`/admin/vehicles/${vehicleId}/edit`);
+    navigate(`/vehicles/${vehicleId}/edit`);
   };
 
   const filteredVehicles = vehicles.filter(vehicle =>
@@ -109,7 +113,7 @@ const Vehicle = () => {
                           <button 
                             className="text-gray-600 hover:text-gray-900" 
                             title="Edit"
-                            onClick={() => handleEditVehicle(vehicle.vehicleId)}
+                            onClick={() => handleEditVehicle(vehicle._id)}
                           >
                             <FaEdit />
                           </button>

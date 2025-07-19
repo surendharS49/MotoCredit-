@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '../../../components/layout';
 import { FaUser, FaLock, FaUsers, FaUserShield, FaSpinner, FaEdit, FaTrash, FaKey, FaEnvelope } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../../../utils/api/axiosConfig';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -30,28 +30,28 @@ const Settings = () => {
 
   const fetchProfileData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/admin/profile',);
+      const response = await api.get('/auth/profile');
       const { name, email } = response.data;
       setProfileData(prev => ({ ...prev, name, email }));
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to fetch profile data');
     }
   };
 
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/settings/customers');
+      const response = await api.get('/api/settings/customers');
       setCustomers(response.data);
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to fetch customers');
     }
   };
 
   const fetchAdmins = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/settings/admins');
+      const response = await api.get('/settings/admins');
       setAdmins(response.data);
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to fetch admins');
     }
   };
@@ -63,7 +63,7 @@ const Settings = () => {
     setErrorMessage('');
 
     try {
-      await axios.put('http://localhost:3000/api/settings/profile', {
+      await api.put('/api/settings/profile', {
         name: profileData.name,
         email: profileData.email,
         admin:true,
@@ -86,20 +86,20 @@ const Settings = () => {
 
   const handleResetPassword = async (customerId) => {
     try {
-      await axios.post(`http://localhost:3000/api/settings/customers/${customerId}/reset-password`);
+      await api.post(`/api/settings/customers/${customerId}/reset-password`);
       setSuccessMessage('Password reset initiated successfully');
       setShowResetPasswordModal(false);
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to initiate password reset');
     }
   };
 
   const handleUpdateAdmin = async (adminId, data) => {
     try {
-      await axios.put(`http://localhost:3000/api/settings/admins/${adminId}`, data);
+      await api.put(`/settings/admins/${adminId}`, data);
       setSuccessMessage('Admin updated successfully');
       fetchAdmins();
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to update admin');
     }
   };

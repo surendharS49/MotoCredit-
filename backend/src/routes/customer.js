@@ -10,19 +10,18 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
     const {
       name, email, phone, address, city,
       state, zip, country, dob, gender,
-      aadhar, pan, drivingLicense
+      aadhar, pan, drivingLicense, role
     } = req.body;
     
     console.log('Received customer data:', req.body);
 
-    const existingCustomer = await Customer.findOne({ 
-      $or: [
-        { email },
-        { aadhar },
-        { pan },
-        { drivingLicense }
-      ]
-    });
+    const query = { $or: [] };
+    if (email) query.$or.push({ email });
+    if (aadhar) query.$or.push({ aadhar });
+    if (pan) query.$or.push({ pan });
+    if (drivingLicense) query.$or.push({ drivingLicense });
+
+    const existingCustomer = query.$or.length > 0 ? await Customer.findOne(query) : null;
 
     if (existingCustomer) {
       return res.status(400).json({ 
@@ -38,7 +37,8 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
       customerId,
       name, email, phone, address, city,
       state, zip, country, dob, gender,
-      aadhar, pan, drivingLicense
+      aadhar, pan, drivingLicense,
+      role: 'customer'
     });
 
     console.log('Customer object before save:', newCustomer);
@@ -47,6 +47,7 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
     res.status(201).json(savedCustomer);
 
   } catch (err) {
+    console.log("error in customer.js:",err);  
     console.error('Error creating customer:', err);
     res.status(500).json({ 
       message: 'Server error',
@@ -56,17 +57,18 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
 });
 
 // Get all customers
-router.get('/customers', verifyToken, async (req, res) => {
+router.get('/getallcustomers', verifyToken, async (req, res) => {
   try {
     const customers = await Customer.find();
     res.json(customers);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log("error in customer.js:",err);  
+      res.status(500).json({ message: err.message });
   }
 });
 
 // Get customer by ID
-router.get('/customer/:id', verifyToken, async (req, res) => {
+router.get('/getcustomer/:id', verifyToken, async (req, res) => {
   try {
     const customer = await Customer.findOne({ customerId: req.params.id });
     if (!customer) {
@@ -74,12 +76,13 @@ router.get('/customer/:id', verifyToken, async (req, res) => {
     }
     res.json(customer);
   } catch (err) {
+    console.log("error in customer.js:",err);  
     res.status(500).json({ message: err.message });
   }
 });
 
 // Update customer
-router.put('/customer/:id', verifyToken, async (req, res) => {
+router.put('/updatecustomer/:id', verifyToken, async (req, res) => {
   try {
     const customer = await Customer.findOneAndUpdate(
       { customerId: req.params.id },
@@ -91,12 +94,13 @@ router.put('/customer/:id', verifyToken, async (req, res) => {
     }
     res.json(customer);
   } catch (err) {
+    console.log("error in customer.js:",err);  
     res.status(500).json({ message: err.message });
   }
 });
 
 // Delete customer
-router.delete('/customer/:id', verifyToken, async (req, res) => {
+router.delete('/deletecustomer/:id', verifyToken, async (req, res) => {
   try {
     const customer = await Customer.findOneAndDelete({ customerId: req.params.id });
     if (!customer) {
@@ -104,6 +108,7 @@ router.delete('/customer/:id', verifyToken, async (req, res) => {
     }
     res.json({ message: 'Customer deleted successfully' });
   } catch (err) {
+    console.log("error in customer.js:",err);  
     res.status(500).json({ message: err.message });
   }
 });

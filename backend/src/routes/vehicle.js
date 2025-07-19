@@ -18,9 +18,24 @@ router.post('/addvehicle', verifyToken, async (req, res) => {
             });
         }
 
-        const vehicleId = await generateVehicleId();
         const {registrationNumber, manufacturer, model, year,
              engineNumber, chassisNumber, color, status } = req.body;
+
+        const existingVehicle = await Vehicle.findOne({
+            $or: [
+                { registrationNumber },
+                { engineNumber },
+                { chassisNumber }
+            ]
+        });
+
+        if (existingVehicle) {
+            return res.status(400).json({
+                message: 'Vehicle with the same registration, engine, or chassis number already exists.'
+            });
+        }
+
+        const vehicleId = await generateVehicleId();
         
         const vehicle = new Vehicle({
             vehicleId,
@@ -40,6 +55,7 @@ router.post('/addvehicle', verifyToken, async (req, res) => {
         console.log('Vehicle saved successfully:', savedVehicle);
         res.status(201).json(savedVehicle);
     } catch (error) {
+        console.log("error in vehicle.js:",error);  
         console.error('Error in /addvehicle:', error);
         res.status(500).json({
             message: 'Error adding vehicle',
@@ -50,17 +66,18 @@ router.post('/addvehicle', verifyToken, async (req, res) => {
 });
 
 // Get all vehicles
-router.get('/vehicles', verifyToken, async (req, res) => {
+router.get('/getallvehicles', verifyToken, async (req, res) => {
     try {
         const vehicles = await Vehicle.find();
         res.json(vehicles);
     } catch (error) {
+        console.log("error in vehicle.js:",error);  
         res.status(500).json({ message: error.message });
     }
 });
 
 // Get vehicle by ID
-router.get('/vehicle/:id', verifyToken, async (req, res) => {
+router.get('/getvehicle/:id', verifyToken, async (req, res) => {
     try {
         const vehicle = await Vehicle.findOne({ vehicleId: req.params.id });
         if (!vehicle) {
@@ -68,12 +85,13 @@ router.get('/vehicle/:id', verifyToken, async (req, res) => {
         }
         res.json(vehicle);
     } catch (error) {
+        console.log("error in vehicle.js:",error);  
         res.status(500).json({ message: error.message });
     }
 });
 
 // Update vehicle
-router.put('/vehicle/:id', verifyToken, async (req, res) => {
+router.put('/updatevehicle/:id', verifyToken, async (req, res) => {
     try {
         const vehicle = await Vehicle.findOneAndUpdate(
             { vehicleId: req.params.id },
@@ -85,12 +103,13 @@ router.put('/vehicle/:id', verifyToken, async (req, res) => {
         }
         res.json(vehicle);
     } catch (error) {
+        console.log("error in vehicle.js:",error);  
         res.status(500).json({ message: error.message });
     }
 });
 
 // Delete vehicle
-router.delete('/vehicle/:id', verifyToken, async (req, res) => {
+router.delete('/deletevehicle/:id', verifyToken, async (req, res) => {
     try {
         const vehicle = await Vehicle.findOneAndDelete({ vehicleId: req.params.id });
         if (!vehicle) {
@@ -98,6 +117,7 @@ router.delete('/vehicle/:id', verifyToken, async (req, res) => {
         }
         res.json({ message: 'Vehicle deleted successfully' });
     } catch (error) {
+        console.log("error in vehicle.js:",error);  
         res.status(500).json({ message: error.message });
     }
 });

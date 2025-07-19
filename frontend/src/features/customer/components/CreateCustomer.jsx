@@ -3,15 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
 import './customers.css';
 import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
-import logo from '../../../assets/motocredit-logo.png';
+import api from '../../../utils/api/axiosConfig'; // Adjust the import path as necessary
 
 const CreateCustomer = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isFlowMode = location.pathname === '/admin/customers/create';
+  const isFlowMode = location.pathname === '/customers/create';
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     email: '',
@@ -34,19 +33,8 @@ const CreateCustomer = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/admin/createcustomer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCustomer),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.details || data.message || 'Failed to create customer');
-      }
+      const response = await api.post('/customers/createcustomer', newCustomer);
+      const data = response.data;
 
       if (!data.customerId) {
         throw new Error('Customer ID was not generated properly');
@@ -54,13 +42,13 @@ const CreateCustomer = () => {
 
       // Navigate based on mode
       if (isFlowMode) {
-        navigate(`/admin/vehicles/add?customerId=${data.customerId}`);
+        navigate(`/vehicles/add?customerId=${data.customerId}`);
       } else {
-        navigate('/admin/customers');
+        navigate('/customers');
       }
     } catch (error) {
       console.error('Error creating customer:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message || 'Failed to create customer');
     } finally {
       setIsLoading(false);
     }

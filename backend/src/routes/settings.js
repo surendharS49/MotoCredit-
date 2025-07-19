@@ -10,6 +10,7 @@ router.get('/', verifyToken, async (req, res) => {
             message: 'Settings endpoint'
         });
     } catch (error) {
+        console.log("error in settings.js:",error);  
         res.status(500).json({ message: error.message });
     }
 });

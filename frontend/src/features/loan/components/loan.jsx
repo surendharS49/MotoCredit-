@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
 import { FaPlus, FaSearch } from 'react-icons/fa';
 import ViewLoan from './ViewLoan';
+import api from '../../../utils/api/axiosConfig';
 
-const LoanPage = () => {
+const LoanPage = () => {  // Renamed from LoanPage to LoanList      
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [loanData, setLoanData] = useState([]);
@@ -14,14 +15,36 @@ const LoanPage = () => {
   useEffect(() => {
     const fetchLoans = async () => {
       try {
-        const response = await fetch('http://localhost:3000/admin/getloans');
-        if (!response.ok) {
-          throw new Error('Failed to fetch loans');
-        }
-        const data = await response.json();
-        setLoanData(data);
-      } catch (err) {
-        setError(err.message);
+        const response = await api.get('/loans/getallloans');
+        console.log('Fetched loans:', response.data);
+        if (!response.data || response.data.length === 0) {
+          setError('No loans found');
+        } else {
+          // Fetch customer and vehicle details if needed
+          const customerResponse = await api.get(`/customers/getallcustomers`);
+          const vehicleResponse = await api.get(`/vehicles/getallvehicles`);
+          
+          const updatedLoanData = response.data.map(loan => ({
+            ...loan,
+            customerName: (() => {
+              const customer = customerResponse.data.find(customer => customer.customerId === loan.customerId);
+              return customer ? customer.name : 'Unknown';
+            })(),
+            // Store the vehicle object that matches loan.vehicleId in vehicleDetails for display in the table
+            // Only store required vehicle fields to reduce memory usage
+            vehicleDetails: (() => {
+              const vehicle = vehicleResponse.data.find(vehicle => vehicle.vehicleId === loan.vehicleId);
+              return vehicle
+                ? { registrationNumber: vehicle.registrationNumber, model: vehicle.model, number: vehicle.number }
+                : { registrationNumber: 'Unknown', model: 'Unknown', number: 'Unknown' };
+            })()
+          }));
+          console.log('Updated loan data:', updatedLoanData);
+          // Map loan data with customer and vehicle details
+          setLoanData(updatedLoanData);
+        }}
+      catch (err) {
+        setError(err.response?.data?.message || err.message);
         console.error('Error fetching loans:', err);
       } finally {
         setIsLoading(false);
@@ -37,7 +60,7 @@ const LoanPage = () => {
   };
 
   const handleCreateLoan = () => {
-    navigate('/admin/loans/create');
+    navigate('/loans/create');
   };
 
   const formatCurrency = (amount) => {
@@ -136,8 +159,8 @@ const LoanPage = () => {
                         <tr key={loan.loanId} className="border-t border-slate-200">
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{loan.loanId}</td>
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-[#0e141b]">{loan.customerName}</td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{loan.vehicleDetails.split(' - ')[0]}</td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{loan.vehicleDetails.split(' - ')[1]}</td>
+                          <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{loan.vehicleDetails.registrationNumber}</td>
+                          <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{loan.vehicleDetails.model}</td>
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{formatCurrency(loan.loanAmount)}</td>
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{formatCurrency(loan.emiAmount)}</td>
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097]">{loan.tenure}</td>
@@ -149,10 +172,10 @@ const LoanPage = () => {
                           </td>
                           <td className="whitespace-nowrap px-4 py-3 text-sm">
                             <button
-                              onClick={() => navigate(`/admin/loans/${loan.loanId}`)}
+                              onClick={() => navigate(`/loans/${loan.loanId}`)}
                               className="text-blue-600 hover:text-blue-800 text-center"
                             >
-                             <td className="whitespace-nowrap px-4 py-3 text-sm text-[#4e7097] text-center">View</td>
+                             View
                             </button>
                           </td>
                         </tr>

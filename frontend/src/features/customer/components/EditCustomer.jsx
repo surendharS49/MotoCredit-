@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
 import './customers.css';
 import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
+import api from '../../../utils/api/axiosConfig'; // Adjust the import path as necessary
+
 
 const EditCustomer = () => {
   const navigate = useNavigate();
@@ -28,20 +30,17 @@ const EditCustomer = () => {
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/admin/customers/${customerId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch customer');
-        }
-        const data = await response.json();
+        const response = await api.get(`/customers/getcustomer/${customerId}`);
+        const data = response.data;
         // Format the date to YYYY-MM-DD for the input field
         const formattedData = {
           ...data,
-          dob: new Date(data.dob).toISOString().split('T')[0]
+          dob: data.dob ? new Date(data.dob).toISOString().split('T')[0] : ''
         };
         setCustomer(formattedData);
       } catch (error) {
         console.error('Error fetching customer:', error);
-        setError('Failed to load customer data');
+        setError(error.response?.data?.message || 'Failed to load customer data');
       }
     };
 
@@ -56,31 +55,18 @@ const EditCustomer = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:3000/admin/updatecustomer/${customerId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(customer),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.details || data.message || 'Failed to update customer');
-      }
-
-      navigate('/admin/customers');
+      await api.put(`/customers/updatecustomer/${customerId}`, customer);
+      navigate('/customers');
     } catch (error) {
       console.error('Error updating customer:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message || 'Failed to update customer');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/admin/customers');
+    navigate('/customers');
   };
 
   return (

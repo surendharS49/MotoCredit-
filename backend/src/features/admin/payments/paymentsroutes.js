@@ -2,46 +2,84 @@ const express = require('express');
 const router = express.Router();
 const Payment = require('../../../models/Payment');
 const Loan = require('../../../models/Loan');
-const AuditLog = require('../../../models/AuditLog'); // Added AuditLog import
+const AuditLog = require('../../../models/AuditLog');
+const { verifyToken } = require('../../../middleware/auth');
 
 async function generatePaymentId() {
-    const latestPayment = await Payment.find({paymentId:{$regex:/^PY-/}});
-    const lastIdNum = "PY-";
-    let nextIdNum = Math.floor(1000 + Math.random() * 9000);
-    const paymentIds = latestPayment.map(payment=>payment.paymentId.replace('PY-',''));
-    while(paymentIds.includes(nextIdNum.toString())){
-        nextIdNum = Math.floor(1000 + Math.random() * 9000);
+    // Use findOneAndUpdate with $inc to atomically get and increment the counter
+    const latestPayment = await Payment.find();
+    if(latestPayment.length === 0){
+        const timestamp = Date.now();
+    //const lastId = parseInt(latestPayment.paymentId.replace('PY-', ''), 10) || 0;
+    let nextId = 1 + Math.floor(Math.random() * 1000)*parseInt(timestamp.slice(-3)); 
+        return `PY-${nextId.toString().padStart(4, '0')}`;
     }
-    return `${lastIdNum}${nextIdNum}`;
+    const timestamp = Date.now();
+    let nextId = 1 + Math.floor(Math.random() * 1000)*parseInt(timestamp.toString().slice(-3));
+
+    if (!latestPayment.map((payment) => payment.paymentId).includes(`PY-${nextId.toString().padStart(4, '0')}`)) {
+        nextId = 1 + Math.floor(Math.random() * 1000)*parseInt(timestamp.toString().slice(-3));
+    }
+    return `PY-${nextId.toString().padStart(4, '0')}`;
 }
 
-router.post('/payments/:loanId', async (req, res) => {
-    const { loanId, installmentNumber, amount, status, paidDate, dueDate, paymentMethod } = req.body;
+// Get all payments
+router.get('/all', verifyToken, async (req, res) => {
+    try {
+        const payments = await Payment.find();
+        res.json(payments);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get payment by loanId and installmentNumber
+router.get('/:loanId/installment/:installmentNumber', verifyToken, async (req, res) => {
+    try {
+        const { loanId, installmentNumber } = req.params;
+        const payment = await Payment.findOne({ loanId, installmentNumber });
+        res.json(payment);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get audit log for a loan
+router.get('/:loanId/audit', verifyToken, async (req, res) => {
+    try {
+        const { loanId } = req.params;
+        const auditLogs = await AuditLog.find({
+            loanId,
+            entityType: 'Payment'
+        }).sort({ performedAt: -1 });
+        res.json(auditLogs);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching payment audit logs', error: error.message });
+    }
+});
+
+// Create or update payment
+router.post('/:loanId', verifyToken, async (req, res) => {
+    const { loanId } = req.params;
+    const { installmentNumber, amount, status, paidDate, dueDate, paymentMethod } = req.body;
 
     try {
-        // Check if a payment for this installment already exists
         let payment = await Payment.findOne({ loanId, installmentNumber });
 
         if (payment) {
-            // If payment exists, update it
             payment.amount = amount;
             payment.status = status;
             payment.paidDate = paidDate;
             payment.dueDate = dueDate;
             payment.paymentMethod = paymentMethod;
-            
             await payment.save();
 
             const auditLog = new AuditLog({
                 action: 'PAYMENT_UPDATED',
                 entityType: 'Payment',
                 entityId: payment.paymentId,
-                loanId: loanId,
-                details: {
-                    amount: amount,
-                    installmentNumber: installmentNumber,
-                    updatedPaymentDate: paidDate
-                },
+                loanId,
+                details: { amount, installmentNumber, updatedPaymentDate: paidDate },
                 performedBy: req.admin?.username || 'system',
                 performedAt: new Date()
             });
@@ -49,7 +87,6 @@ router.post('/payments/:loanId', async (req, res) => {
 
             return res.status(200).json({ message: 'Payment updated successfully', payment });
         } else {
-            // If payment does not exist, create a new one
             const paymentId = await generatePaymentId();
             const newPayment = new Payment({
                 paymentId,
@@ -67,29 +104,22 @@ router.post('/payments/:loanId', async (req, res) => {
             if (loandetail) {
                 let nextPaymentDate = new Date(loandetail.nextPaymentDate);
                 nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
-                await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate }, { new: true });
+                await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate });
             }
 
-            const loan = await Loan.findOneAndUpdate({ loanId }, { $push: { payments: paymentId } }, { new: true });
-            
+            await Loan.findOneAndUpdate({ loanId }, { $push: { payments: paymentId } });
+
             const auditLog = new AuditLog({
                 action: 'PAYMENT_CREATED',
                 entityType: 'Payment',
                 entityId: paymentId,
-                loanId: loanId,
-                details: {
-                    amount: amount,
-                    installmentNumber: installmentNumber,
-                    originalPaymentDate: paidDate
-                },
+                loanId,
+                details: { amount, installmentNumber, originalPaymentDate: paidDate },
                 performedBy: req.admin?.username || 'system',
                 performedAt: new Date()
             });
             await auditLog.save();
 
-            if (!loan) {
-                return res.status(404).json({ message: 'Loan not found' });
-            }
             return res.status(201).json({ message: 'Payment created successfully', payment: newPayment });
         }
     } catch (error) {
@@ -97,141 +127,125 @@ router.post('/payments/:loanId', async (req, res) => {
     }
 });
 
-router.get('/payments', async (req, res) => {
-    try{
-        const payments = await Payment.find();
-        res.json(payments);
+// Update payment
+router.put('/:loanId', verifyToken, async (req, res) => {
+    try {
+        const { loanId } = req.params;
+        const { installmentNumber, amount, status, paidDate, dueDate, paymentMethod } = req.body;
+
+        const payment = await Payment.findOneAndUpdate(
+            { loanId, installmentNumber },
+            { amount, status, paidDate, dueDate, paymentMethod },
+            { new: true }
+        );
+
+        const auditLog = new AuditLog({
+            action: 'PAYMENT_UPDATED',
+            entityType: 'Payment',
+            entityId: payment._id,
+            loanId,
+            details: { amount, installmentNumber, originalPaymentDate: paidDate },
+            performedBy: req.admin?.username || 'system',
+            performedAt: new Date()
+        });
+        await auditLog.save();
+
+        res.json(payment);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-router.get('/payments/:loanId', async (req, res) => {
-    const { loanId } = req.params;
-    const payments = await Payment.find({ loanId });
-    res.json(payments);
-});
-
-router.put('/payments/:loanId', async (req, res) => {
-    const { loanId } = req.params;
-    const { installmentNumber, amount, status, paidDate, dueDate, paymentMethod } = req.body;
-    const payment = await Payment.findOneAndUpdate({ loanId, installmentNumber }, { amount, status, paidDate, dueDate, paymentMethod }, { new: true });
-    const auditLog = new AuditLog({
-        action: 'PAYMENT_UPDATED',
-        entityType: 'Payment',
-        entityId: payment._id,
-        loanId: loanId,
-        details: {
-            amount: amount,
-            installmentNumber: installmentNumber,
-            originalPaymentDate: paidDate
-        },
-        performedBy: req.admin?.username || 'system', // Assuming you have admin info in request
-        performedAt: new Date()
-    });
-    await auditLog.save();
-    res.json(payment);
-});
-
-router.delete('/payments/:loanId', async (req, res) => {
-    const { loanId } = req.params;
-    await Payment.deleteMany({ loanId });
-    res.json({ message: 'All payments deleted' });
-});
-
-router.delete('/payments/:loanId/:paymentId', async (req, res) => {
-    const { loanId, paymentId } = req.params;
-    const deletedPayment = await Payment.findOneAndDelete({ loanId, paymentId });
-    await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } });
-    const auditLog = new AuditLog({
-        action: 'PAYMENT_DELETED',
-        entityType: 'Payment',
-        entityId: paymentId,
-        loanId: loanId,
-        details: {
-            amount: deletedPayment.amount,
-            installmentNumber: deletedPayment.installmentNumber,
-            originalPaymentDate: deletedPayment.paidDate
-        },
-        performedBy: req.admin?.username || 'system', // Assuming you have admin info in request
-        performedAt: new Date()
-    });
-    await auditLog.save();
-    res.json({ message: 'Payment deleted' });
-});
-
-router.get('/payments/:loanId/:installmentNumber', async (req, res) => {
-    const { loanId, installmentNumber } = req.params;
-    const payment = await Payment.findOne({ loanId, installmentNumber });
-    res.json(payment);
-});
-
-// Delete/Revert a specific payment
-router.delete('/payments/:loanId/:paymentId', async (req, res) => {
+// Delete all payments for a loan
+router.delete('/:loanId', verifyToken, async (req, res) => {
     try {
-        const { loanId, paymentId } = req.params;
-        
-        // Find and delete the payment
-        const deletedPayment = await Payment.findOneAndDelete({ 
-            loanId, 
-            paymentId 
-        });
+        const { loanId } = req.params;
+        await Payment.deleteMany({ loanId });
+        res.json({ message: 'All payments deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Delete specific payment
+router.delete(`/revertpayment/:paymentId`, verifyToken, async (req, res) => {
+    try {
+        const { paymentId } = req.params;
+        console.log("request body",req);
+       // const { loanId } = req.body;
+       const loan = await Loan.findOne({ payments: paymentId });
+       const loanId=loan.loanId;
+        const deletedPayment = await Payment.findOneAndDelete({ paymentId });
 
         if (!deletedPayment) {
             return res.status(404).json({ message: 'Payment not found' });
         }
 
-        // Update the loan's payments array
-        await Loan.findOneAndUpdate(
-            { loanId },
-            { $pull: { payments: paymentId } }
-        );
+        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } });
 
-        // Add an audit log entry
         const auditLog = new AuditLog({
             action: 'PAYMENT_REVERTED',
             entityType: 'Payment',
             entityId: paymentId,
-            loanId: loanId,
+            loanId,
             details: {
                 amount: deletedPayment.amount,
                 installmentNumber: deletedPayment.installmentNumber,
                 originalPaymentDate: deletedPayment.paidDate
             },
-            performedBy: req.admin?.username || 'system', // Assuming you have admin info in request
+            performedBy: req.admin?.username || 'system',
             performedAt: new Date()
         });
         await auditLog.save();
 
-        res.json({ 
-            message: 'Payment reverted successfully',
-            deletedPayment 
-        });
+        res.json({ message: 'Payment reverted successfully', deletedPayment });
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Error reverting payment',
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Error reverting payment', error: error.message });
     }
 });
 
-// Get audit log for a loan's payments
-router.get('/payments/:loanId/audit', async (req, res) => {
+router.delete('/:loanId/payment/:paymentId', verifyToken, async (req, res) => {
+    try {
+        const { loanId, paymentId } = req.params;
+
+        const deletedPayment = await Payment.findOneAndDelete({ loanId, paymentId });
+
+        if (!deletedPayment) {
+            return res.status(404).json({ message: 'Payment not found' });
+        }
+
+        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } });
+
+        const auditLog = new AuditLog({
+            action: 'PAYMENT_REVERTED',
+            entityType: 'Payment',
+            entityId: paymentId,
+            loanId,
+            details: {
+                amount: deletedPayment.amount,
+                installmentNumber: deletedPayment.installmentNumber,
+                originalPaymentDate: deletedPayment.paidDate
+            },
+            performedBy: req.admin?.username || 'system',
+            performedAt: new Date()
+        });
+        await auditLog.save();
+
+        res.json({ message: 'Payment reverted successfully', deletedPayment });
+    } catch (error) {
+        res.status(500).json({ message: 'Error reverting payment', error: error.message });
+    }
+});
+
+// Get payments by loanId (MUST BE LAST!)
+router.get('/:loanId', verifyToken, async (req, res) => {
     try {
         const { loanId } = req.params;
-        const auditLogs = await AuditLog.find({
-            loanId,
-            entityType: 'Payment'
-        }).sort({ performedAt: -1 });
-        
-        res.json(auditLogs);
+        const payments = await Payment.find({ loanId });
+        res.json(payments);
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Error fetching payment audit logs',
-            error: error.message 
-        });
+        res.status(500).json({ message: error.message });
     }
 });
-
 
 module.exports = router;

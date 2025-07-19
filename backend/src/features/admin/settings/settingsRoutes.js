@@ -11,6 +11,7 @@ router.get('/profile', async (req, res) => {
     const admin = await Admin.findById(req.admin).select('-password');
     res.json(admin);
   } catch (err) {
+    console.log("error in settingsRoutes.js:",err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -54,7 +55,7 @@ router.put('/profile', async (req, res) => {
 
     res.json({ message: 'Profile updated successfully', admin: adminObj });
   } catch (err) {
-    console.log("error :",err);
+    console.log("error in settingsRoutes.js:",err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -65,6 +66,7 @@ router.get('/admins', async (req, res) => {
     const admins = await Admin.find().select('-password');
     res.json(admins);
   } catch (err) {
+    console.log("error in settingsRoutes.js:",err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -81,6 +83,7 @@ router.put('/admins/:adminId', async (req, res) => {
     ).select('-password');
     res.json(admin);
   } catch (err) {
+    console.log("error in settingsRoutes.js:",err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -91,6 +94,7 @@ router.get('/customers', async (req, res) => {
     const customers = await Customer.find().select('name email');
     res.json(customers);
   } catch (err) {
+    console.log("error in settingsRoutes.js:",err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -106,7 +110,8 @@ router.post('/customers/:customerId/reset-password', async (req, res) => {
     // For now, just return success message
     res.json({ message: 'Password reset initiated. OTP would be sent to customer.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.log("error in settingsRoutes.js:",err);
+      res.status(500).json({ error: err.message });
   }
 });
 

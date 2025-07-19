@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
+import api from '../../../utils/api/axiosConfig';
 import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
 
 const EditVehicle = () => {
@@ -13,12 +14,8 @@ const EditVehicle = () => {
   useEffect(() => {
     const fetchVehicle = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/admin/vehicles/${vehicleId}`);
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch vehicle');
-        }
+        const response = await api.get(`/vehicles/getvehicle/${vehicleId}`);
+        const data = response.data;
         
         if (!data) {
           throw new Error('Vehicle not found');
@@ -27,7 +24,7 @@ const EditVehicle = () => {
         setVehicle(data);
       } catch (error) {
         console.error('Error fetching vehicle:', error);
-        setError(error.message || 'Failed to load vehicle data');
+        setError(error.response?.data?.message || error.message || 'Failed to load vehicle data');
       } finally {
         setIsLoading(false);
       }
@@ -44,31 +41,18 @@ const EditVehicle = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:3000/admin/updatevehicle/${vehicleId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(vehicle),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update vehicle');
-      }
-
-      navigate('/admin/vehicles');
+      await api.put(`/vehicles/updatevehicle/${vehicleId}`, vehicle);
+      navigate('/vehicles');
     } catch (error) {
       console.error('Error updating vehicle:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message || 'Failed to update vehicle');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/admin/vehicles');
+    navigate('/vehicles');
   };
 
   if (isLoading) {

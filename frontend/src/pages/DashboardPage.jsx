@@ -1,23 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
 import "./dashboard.css";
-import logo from "../assets/motocredit-logo.png";
 import { FaUsers, FaMoneyCheckAlt, FaWallet, FaExclamationCircle } from "react-icons/fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Customers } from "../features/customer/components";
 import { Navbar } from "../components/layout";
-
-const adminName = () => {
-  const admin = localStorage.getItem('user');
-  return admin ? JSON.parse(admin).name : '';
-};
+import api from "../utils/api/axiosConfig";
 
 const DashboardPage = () => {
   const [search, setSearch] = useState('');
   const [totalDisbursedAmount, setTotalDisbursedAmount] = useState(0);
   const [overdueEmis, setOverdueEmis] = useState(0);
   const [adminName, setAdminName] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [customerCount, setCustomerCount] = useState(0);
   const [increasePercentage, setIncreasePercentage] = useState(0);
   const [loanCount, setLoanCount] = useState(0);
@@ -37,88 +30,73 @@ const DashboardPage = () => {
     { month: 'Nov', value: 0 },
     { month: 'Dec', value: 0 }
   ]);
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  const fetchOverdueEmis = async () => {
+  const fetchOverdueEmis = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3000/admin/loans');
-      const data = await response.json();
+      const response = await api.get('/loans/getallloans');
+      const data = response.data;
       
-      // Calculate overdue EMIs: loans whose nextPaymentDate is before today
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
+      today.setHours(0, 0, 0, 0);
       
       const overdueLoans = data.filter(loan => {
-        if (!loan.nextPaymentDate) {
-          return false;
-        }
+        if (!loan.nextPaymentDate) return false;
         const nextPaymentDate = new Date(loan.nextPaymentDate);
-        nextPaymentDate.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
-        const isOverdue = nextPaymentDate < today && loan.status !== 'Closed';
-        return isOverdue;
+        nextPaymentDate.setHours(0, 0, 0, 0);
+        return nextPaymentDate < today && loan.status !== 'Closed';
       });
       
-      const overdueLoansLength = overdueLoans.length;
-      setOverdueEmis(overdueLoansLength);
+      setOverdueEmis(overdueLoans.length);
     } catch (error) {
       console.error('Error fetching overdue EMIs:', error);
       setOverdueEmis(0);
     }
-    };
+  }, []);
 
-  const fetchEmiData = async () => {
+  const fetchEmiData = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3000/admin/payments');
-      const data = await response.json();
+      const response = await api.get('/payments/all');
+      const data = response.data;
 
-      const updatedEmiData = monthlyEmiData.map(month => ({ ...month, value: 0 }));
+      setMonthlyEmiData(currentEmiData => {
+        const updatedEmiData = currentEmiData.map(month => ({ ...month, value: 0 }));
 
-      data.forEach(payment => {
-        if (payment.paidDate) {
-          const paidDate = new Date(payment.paidDate);
-          const monthIndex = paidDate.getMonth();
-          if (payment.amount) {
+        data.forEach(payment => {
+          if (payment.paidDate && payment.amount) {
+            const monthIndex = new Date(payment.paidDate).getMonth();
             updatedEmiData[monthIndex].value += Number(payment.amount);
           }
-        }
-      });
+        });
 
-      setMonthlyEmiData(updatedEmiData);
+        return updatedEmiData;
+      });
     } catch (error) {
       console.error('Error fetching EMI data:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    const fetchIncreasePercentage = async () => {
-      try {
-        const monthIndex = new Date().getMonth();
-        let previousmonthearning = 0;
-        let currentmonthearning = 0;
+    const fetchIncreasePercentage = () => {
+      const monthIndex = new Date().getMonth();
+      let previousMonthEarning = 0;
+      let currentMonthEarning = 0;
 
-        if (Array.isArray(monthlyEmiData) && monthlyEmiData.length > 0) {
-          if (monthIndex > 0 && monthlyEmiData[monthIndex - 1]) {
-            previousmonthearning = Number(monthlyEmiData[monthIndex - 1].value) || 0;
-          }
-          if (monthlyEmiData[monthIndex]) {
-            currentmonthearning = Number(monthlyEmiData[monthIndex].value) || 0;
-          }
+      if (Array.isArray(monthlyEmiData) && monthlyEmiData.length > 0) {
+        if (monthIndex > 0 && monthlyEmiData[monthIndex - 1]) {
+          previousMonthEarning = Number(monthlyEmiData[monthIndex - 1].value) || 0;
         }
-
-        let increasePercentage = 0;
-        if (previousmonthearning > 0) {
-          increasePercentage = ((currentmonthearning - previousmonthearning) / previousmonthearning) * 100;
-        } else if (currentmonthearning > 0) {
-          increasePercentage = 100;
-        } else {
-          increasePercentage = 0;
+        if (monthlyEmiData[monthIndex]) {
+          currentMonthEarning = Number(monthlyEmiData[monthIndex].value) || 0;
         }
-        setIncreasePercentage(increasePercentage.toFixed(2));
-      } catch (error) {
-        console.error('Error fetching increase percentage:', error);
-        setIncreasePercentage(0);
       }
+
+      let percentage = 0;
+      if (previousMonthEarning > 0) {
+        percentage = ((currentMonthEarning - previousMonthEarning) / previousMonthEarning) * 100;
+      } else if (currentMonthEarning > 0) {
+        percentage = 100;
+      }
+      setIncreasePercentage(percentage.toFixed(2));
     };
     fetchIncreasePercentage();
   }, [monthlyEmiData]);
@@ -126,9 +104,11 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchTotalAmountCollected = async () => {
       try {
-        const response = await fetch('http://localhost:3000/admin/payments');
-        const data = await response.json();
+        const response = await api.get('/payments/all');
+        const data = response.data;
+        console.log('Fetched payment data:', data);
         const totalAmount = data.reduce((sum, payment) => sum + payment.amount, 0);
+        console.log('Total amount collected:', totalAmount);
         setTotalAmountCollected(totalAmount);
       } catch (error) {
         console.error('Error fetching total amount collected:', error);
@@ -138,22 +118,21 @@ const DashboardPage = () => {
     fetchTotalAmountCollected();
   }, []);
 
-  // Fetch data when component mounts
   useEffect(() => {
     fetchOverdueEmis();
     fetchEmiData();
-  }, []);
+  }, [fetchOverdueEmis, fetchEmiData]);
 
   useEffect(() => {
-    const admin = localStorage.getItem('user');
-    setAdminName(admin ? JSON.parse(admin).name : '');
+    const adminInfo = localStorage.getItem('user');
+    setAdminName(adminInfo ? JSON.parse(adminInfo).name : '');
   }, []);
 
   useEffect(() => {
     const fetchTotalDisbursedAmount = async () => {
       try {
-        const response = await fetch('http://localhost:3000/admin/loans');
-        const data = await response.json();
+        const response = await api.get('/loans/getallloans');
+        const data = response.data;
         const totalAmount = data.reduce((sum, loan) => sum + loan.loanAmount, 0);
         setTotalDisbursedAmount(totalAmount);
       } catch (error) {
@@ -161,37 +140,35 @@ const DashboardPage = () => {
         setTotalDisbursedAmount(0);
       }
     };
-
     fetchTotalDisbursedAmount();
-  },[]);
+  }, []);
+
   useEffect(() => {
     const fetchCustomerCount = async () => {
       try {
-        const response = await fetch('http://localhost:3000/admin/customers');
-        const data = await response.json();
+        const response = await api.get('/customers/getallcustomers');
+        const data = response.data;
         setCustomerCount(data.length);
       } catch (error) {
         console.error('Error fetching customers:', error);
         setCustomerCount(0);
       }
     };
-
     fetchCustomerCount();
   }, []);
 
   useEffect(() => {
     const fetchLoanCount = async () => {
       try {
-        const response = await fetch('http://localhost:3000/admin/loans');
-        const data = await response.json();
+        const response = await api.get('/loans/getallloans');
+        const data = response.data;
         setLoanCount(data.length);
       } catch (error) {
         console.error('Error fetching loans:', error);
         setLoanCount(0);
       }
     };
-
-    fetchLoanCount(); 
+    fetchLoanCount();
   }, []);
 
   const kpiData = [
@@ -215,36 +192,34 @@ const DashboardPage = () => {
     },
     {
       label: 'Overdue EMIs',
-      value: overdueEmis|| 0,
+      value: overdueEmis || 0,
       icon: <FaExclamationCircle size={28} className="text-red-500" />,
       gradient: 'from-red-100 to-red-50',
     },
   ];
 
-useEffect(()=>{
-  fetchLoans();
-},[]);
-const fetchLoans=async()=>{
-  try {
-    const response = await fetch('http://localhost:3000/admin/loans');
-    const data = await response.json();
-    
-    // Transform the data to match our table structure
-    const transformedLoans = data.map(loan => ({
-      loanId: loan.loanId,
-      customerID: loan.customerId || 'N/A',
-      loanAmount: Number(loan.loanAmount) || 0,
-      tenure: loan.tenure || 0,
-      createdAt: loan.createdAt || new Date().toISOString(),
-      status: loan.status || 'Pending'
-    }));
-    
-    setAllLoans(transformedLoans);
-  } catch (error) {
-    console.error('Error fetching loans:', error);
-    setAllLoans([]);
-  }
-}
+  const fetchLoans = async () => {
+    try {
+      const response = await api.get('/loans/getallloans');
+      const data = response.data;
+      const transformedLoans = data.map(loan => ({
+        loanId: loan.loanId,
+        customerID: loan.customerId || 'N/A',
+        loanAmount: Number(loan.loanAmount) || 0,
+        tenure: loan.tenure || 0,
+        createdAt: loan.createdAt || new Date().toISOString(),
+        status: loan.status || 'Pending'
+      }));
+      setAllLoans(transformedLoans);
+    } catch (error) {
+      console.error('Error fetching loans:', error);
+      setAllLoans([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchLoans();
+  }, []);
 
   const statusColors = {
     Paid: 'bg-green-100 text-green-700',

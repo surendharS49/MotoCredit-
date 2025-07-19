@@ -25,8 +25,9 @@ function Login() {
       // Here you would typically manufacturer your API call
       // For now, we'll simulate a login
       await new Promise(resolve => setTimeout(resolve, 1000));
-      navigate('/admin/dashboard');
-    } catch (err) {
+      navigate('/dashboard');
+    } catch {
+
       setError('Invalid email or password');
     } finally {
       setIsLoading(false);
@@ -115,7 +116,7 @@ function Login() {
             <button
               type="button"
               className="text-sm font-medium text-blue-600 hover:text-blue-500"
-              onClick={() => navigate('/admin/forgot-password')}
+              onClick={() => navigate('/auth/forgot-password')}
             >
               Forgot password?
             </button>
@@ -143,7 +144,7 @@ function Login() {
           <button
             type="button"
             className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/auth/admin')}
           >
             Sign in as admin
           </button>

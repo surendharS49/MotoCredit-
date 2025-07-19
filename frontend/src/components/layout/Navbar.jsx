@@ -12,22 +12,22 @@ const Navbar = () => {
   const handleLogout = () => {
     clearAuth();
     setDropdownOpen(false);
-    navigate('/admin/');
+    navigate('/auth/admin');
   };
 
   const navItems = [
-    { path: '/admin/dashboard', label: 'Dashboard' },
-    { path: '/admin/customers', label: 'Customers' },
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/customers', label: 'Customers' },
    
-    { path: '/admin/loans', label: 'Loans' },
-    { path: '/admin/vehicles', label: 'Vehicles' },
+    { path: '/loans', label: 'Loans' },
+    { path: '/vehicles', label: 'Vehicles' },
     { 
-      path: '/admin/customers/create', 
+      path: '/customers/create', 
       label: 'New Application',
       // description: 'Create Customer → Vehicle → Loan'
     },
-    // { path: '/admin/reports', label: 'Reports' },
-    { path: '/admin/settings', label: 'Settings' }
+    // { path: '/reports', label: 'Reports' },
+    { path: '/settings', label: 'Settings' }
   ];
 
   return (

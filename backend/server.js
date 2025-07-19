@@ -6,18 +6,30 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 
-// CORS
-app.use(cors({
+// CORS Configuration
+const corsOptions = {
   origin: ['http://localhost:5173', 'https://motocredit.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+  exposedHeaders: ['Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Apply CORS
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+// app.options('/*', cors(corsOptions));
 
 app.use(express.json());
 
 // Health check route
-app.get('/', (req, res) => res.send('API running ✅'));
+app.get('/', (req, res) => {
+  console.log("Health check route hit");
+  res.send('API running ✅');
+});
 
 // Mount routes
 const adminRoutes = require('./src/routes/admin');
@@ -26,13 +38,16 @@ const vehicleRoutes = require('./src/routes/vehicle');
 const loanRoutes = require('./src/routes/loan');
 const paymentRoutes = require('./src/features/admin/payments/paymentsroutes');
 const settingsRoutes = require('./src/routes/settings');
+const auditLogRoutes = require('./src/features/admin/payments/auditlogroutes');
 
 app.use('/api/admin', adminRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/loans', loanRoutes);
-app.use('/admin', paymentRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/settings', settingsRoutes);
+
 
 // Connect to MongoDB (non-blocking)
 connectDB()
@@ -43,7 +58,5 @@ connectDB()
   })
   .catch((err) => {
     console.error('❌ DB connection failed:', err);
-    process.exit(1); // Kill process so Render knows it's broken
+    process.exit(1); 
   });
-// ✅ Start server after setting up routes
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

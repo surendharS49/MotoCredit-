@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../../assets/motocredit-logo.png';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import axios from 'axios'; // Added axios import
-import { jwtDecode } from 'jwt-decode'; // Added jwt-decode import
-import { setAuthToken } from '../../../utils/api/auth';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+import { setupAuthHeaders, isAuthenticated } from '../../../utils/api/auth';
+import api from '../../../utils/api/axiosConfig';
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,36 +28,84 @@ function AdminLogin() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/admin/login', { // Updated URL
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }), // Send only email and password
-      });
-      console.log(response);
-      const data = await response.json();
-      console.log(data);
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      console.log('🔑 Attempting login with:', { email });
+      
+      // Clear any existing auth state
+      localStorage.removeItem('token');
+      localStorage.removeItem('adminInfo');
+      
+      // Make login request without auth header
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api'}/admin/login`, 
+        { email, password }
+      );
+      
+      console.log('✅ Login response received');
+      
+      if (!data.token) {
+        throw new Error(data.message || 'No token received from server');
       }
 
-      if (data.token) {
-        setAuthToken(data.token);
-        localStorage.setItem('adminInfo', JSON.stringify({
-          email: email,
-          lastLogin: new Date().toISOString()
-        }));
+      // Save the token to localStorage
+      console.log('🔐 Setting auth token in localStorage...');
+      localStorage.setItem('token', data.token);
+      console.log('✅ Token stored in localStorage');
+      
+      // Set up axios headers with the new token
+      console.log('🔄 Setting up axios headers...');
+      const headersSet = setupAuthHeaders();
+      if (!headersSet) {
+        throw new Error('Failed to set up authentication headers');
       }
-
-      navigate('/admin/dashboard');
+      
+      // Save admin info
+      const adminInfo = {
+        email: email,
+        lastLogin: new Date().toISOString()
+      };
+      console.log('💾 Saving admin info:', adminInfo);
+      localStorage.setItem('adminInfo', JSON.stringify(adminInfo));
+      
+      // Force refresh of auth state in other tabs/windows
+      console.log('🔄 Dispatching storage event...');
+      window.dispatchEvent(new Event('storage'));
+      
+      // Verify authentication status
+      console.log('🔒 Checking authentication status...');
+      const authStatus = isAuthenticated();
+      console.log('🔑 isAuthenticated() result:', authStatus);
+      
+      if (!authStatus) {
+        throw new Error('Failed to authenticate after login');
+      }
+      
+      // Make a test API call to verify the token works
+      try {
+        console.log('🔍 Verifying token with test API call...');
+        const testResponse = await api.get('/admin/verify');
+        console.log('✅ Test API call successful:', testResponse.data);
+      } catch (testError) {
+        console.error('❌ Test API call failed:', testError);
+        throw new Error('Token verification failed');
+      }
+      
+      // Navigate to dashboard
+      console.log('🚀 Navigating to:', from);
+      navigate(from, { replace: true });
+      
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Invalid email or password');
+      // Clear any partial auth state
+      localStorage.removeItem('token');
+      localStorage.removeItem('adminInfo');
+      delete api.defaults.headers.common['Authorization'];
+      
+      setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   // Add a function to check token validity
   const checkTokenValidity = () => {
@@ -81,7 +132,7 @@ function AdminLogin() {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminInfo');
     delete axios.defaults.headers.common['Authorization'];
-    navigate('/admin/login');
+    navigate('/auth/admin');
   };
 
   // Check token validity when component mounts
@@ -171,7 +222,7 @@ function AdminLogin() {
             <button
               type="button"
               className="text-sm font-medium text-blue-600 hover:text-blue-500"
-              onClick={() => navigate('/admin/forgot-password')}
+              onClick={() => navigate('/auth/forgot-password')}
             >
               Forgot password?
             </button>

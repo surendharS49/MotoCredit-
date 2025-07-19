@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import './customers.css';
-import { useNavigate, useLocation } from 'react-router-dom';
-import logo from '../../../assets/motocredit-logo.png';
+import { useNavigate } from 'react-router-dom';
+//import logo from '../../../assets/motocredit-logo.png';
 import { FaSearch, FaUserPlus, FaEye, FaEdit } from 'react-icons/fa';
 import { Navbar } from '../../../components/layout';
+import api from '../../../utils/api/axiosConfig';
 
 const Customers = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  //const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+ // const [dropdownOpen, setDropdownOpen] = useState(false);
   const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/admin/customers')
-      .then(response => response.json())
-      .then(data => setCustomers(data))
+    api.get('/customers/getallcustomers')
+      .then(response => {
+        console.log(response);
+        setCustomers(response.data);
+      })
       .catch(error => console.error('Error fetching customers:', error));
   }, []);
 
@@ -30,15 +33,15 @@ const Customers = () => {
   );
 
   const handleCreateCustomerClickVehicle = () => {
-    navigate('/admin/vehicle');
+    navigate('/vehicles/add');
   };
 
   const handleCreateCustomerClick = () => {
-    navigate('/admin/create-customer');
+    navigate('/customers/create');
   };
 
   const handleEditCustomer = (customerId) => {
-    navigate(`/admin/customers/${customerId}/edit`);
+    navigate(`/customers/${customerId}/edit`);
   };
 
   const statusColors = {

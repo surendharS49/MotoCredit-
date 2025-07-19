@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '../../../components/layout';
 import { FaArrowLeft, FaCalculator, FaSearch, FaSync } from 'react-icons/fa';
-
+import api from '../../../utils/api/axiosConfig';
 const CreateLoan = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -32,6 +32,7 @@ const CreateLoan = () => {
         emiAmount: '',
         startDate: '',
         paymentFrequency: 'Monthly',
+        installments: '',
         status: 'Pending',
         guarantorName: '',
         guarantorPhone: '',
@@ -63,10 +64,9 @@ const CreateLoan = () => {
 
     const fetchCustomers = async () => {
         try {
-            const response = await fetch('http://localhost:3000/admin/customers');
-            const data = await response.json();
-            setCustomers(data);
-            setFilteredCustomers(data); // Initialize filtered customers
+            const response = await api.get('/customers/getallcustomers');
+            setCustomers(response.data);
+            setFilteredCustomers(response.data); // Initialize filtered customers
         } catch (error) {
             console.error('Error fetching customers:', error);
         }
@@ -74,10 +74,9 @@ const CreateLoan = () => {
 
     const fetchVehicles = async () => {
         try {
-            const response = await fetch('http://localhost:3000/admin/getvehicles');
-            const data = await response.json();
-            setVehicles(data);
-            setFilteredVehicles(data); // Initialize filtered vehicles
+            const response = await api.get('/vehicles/getallvehicles');
+            setVehicles(response.data);
+            setFilteredVehicles(response.data); // Initialize filtered vehicles
         } catch (error) {
             console.error('Error fetching vehicles:', error);
         }
@@ -95,28 +94,18 @@ const CreateLoan = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            console.log('Submitting loan data:', loanData);
-            const response = await fetch('http://localhost:3000/admin/createloan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(loanData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create loan');
-            }
-
-            const data = await response.json();
-            console.log('Loan created:', data);
-            navigate('/admin/loans');
+            const response = await api.post('/loans/createloan', loanData);
+            
+            console.log('Loan created:', response.data);
+            navigate('/loans');
         } catch (error) {
             console.error('Error creating loan:', error);
+            // Optionally set an error state to show in the UI
         } finally {
             setIsLoading(false);
         }
     };
+    
 
     const calculateEMI = () => {
         const principal = parseFloat(loanData.loanAmount) || 0;
@@ -211,7 +200,7 @@ const CreateLoan = () => {
                         {/* Header */}
                         <div className="flex items-center gap-4 mb-8">
                             <button
-                                onClick={() => navigate('/admin/loans')}
+                                onClick={() => navigate('/loans')}
                                 className="text-gray-600 hover:text-gray-900"
                             >
                                 <FaArrowLeft className="h-5 w-5" />
@@ -601,7 +590,7 @@ const CreateLoan = () => {
                             <div className="flex justify-end gap-4">
                                 <button
                                     type="button"
-                                    onClick={() => navigate('/admin/loans')}
+                                    onClick={() => navigate('/loans')}
                                     className="px-6 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200"
                                 >
                                     Cancel
@@ -609,6 +598,7 @@ const CreateLoan = () => {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
+
                                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                                 >
                                     {isLoading ? 'Creating...' : 'Create Loan'}
