@@ -1,8 +1,6 @@
 // This makes process.env available in the browser
-const process = { env: { NODE_ENV: 'development' } };
-
 import { Routes, Route } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Login, AdminLogin, ForgotPassword, ProtectedRoute } from "./features/auth/components";
 import DashboardPage from "./pages/DashboardPage";
 import { LoanPage, CreateLoan, ViewLoan } from "./features/loan/components";
@@ -12,40 +10,6 @@ import { Reports } from "./features/reports/components";
 import { Payment } from "./features/payment/components";
 import { Settings } from "./features/settings/components";
 import { setupAuthHeaders, isAuthenticated } from './utils/api/auth';
-
-// Debug component to track auth state
-const AuthDebug = () => {
-  const [token, setToken] = useState(localStorage.getItem('adminToken'));
-  
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setToken(localStorage.getItem('adminToken'));
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-  
-  if (process.env.NODE_ENV === 'development') {
-    return (
-      <div style={{
-        position: 'fixed',
-        bottom: '10px',
-        right: '10px',
-        background: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '4px',
-        fontSize: '12px',
-        zIndex: 9999
-      }}>
-        <div>Auth Token: {token ? 'Present' : 'Missing'}</div>
-        <div>isAuthenticated:'Yes' {/*{isAuthenticated() ? 'Yes' : 'No'*/}</div>
-      </div>
-    );
-  }
-  return null;
-};
 
 function App() {
   // Initialize auth headers on app load
@@ -88,7 +52,6 @@ function App() {
         {/* 404 Route */}
         <Route path="*" element={<Login />} />
       </Routes>
-      <AuthDebug />
     </>
   );
 }
