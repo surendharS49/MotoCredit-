@@ -8,7 +8,7 @@ const app = express();
 
 // CORS Configuration
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://motocredit.onrender.com'],
+  origin: ['http://localhost:5173', 'https://moto-credit.netlify.app', 'https://motocredit.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Authorization'],
