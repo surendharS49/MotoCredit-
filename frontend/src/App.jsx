@@ -28,6 +28,7 @@ function App() {
     <>
       <Routes>
         {/* Public Routes */}
+        
         <Route path="/" element={<Login />} />
         <Route path="/auth/admin" element={<AdminLogin />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
