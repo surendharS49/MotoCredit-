@@ -31,6 +31,13 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
     }
 
     const customerId = await generateCustomerId();
+    const password = 'password@12345'; // Set a default password or handle it as needed
+    console.log('Generated password:', password);
+    console.log('Customer data before saving:', {
+      customerId, name, email, phone, address, city,
+      state, zip, country , dob, gender, password, 
+      aadhar, pan, drivingLicense,
+    });
     console.log('Generated customer ID:', customerId);
     
     const newCustomer = new Customer({

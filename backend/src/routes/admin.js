@@ -10,7 +10,7 @@ async function comparePassword(plainPassword, hashedPassword) {
   return await bcrypt.compare(plainPassword, hashedPassword);
 }
 
-router.post('/update-password', verifyToken, async (req, res) => {
+router.put('/update-password', verifyToken, async (req, res) => {
   try {
         const { currentPassword, newPassword } = req.body;
     const { email } = req.user; // Get email from the authenticated user's token
@@ -161,5 +161,32 @@ router.get('/verify', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Server error during token verification' });
   }
 });
+
+// Get all admins
+router.get('/getalladmins', verifyToken, async (req, res) => {
+  try {
+    const admins = await Admin.find();
+    res.json(admins);
+  } catch(err) {
+    console.log("error in admin.js:",err);  
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/profile',verifyToken, async (req,res)=>{
+    try {
+      const {email}=req.user;
+      const admin=await Admin.findOne({
+        email:email
+      });
+      if(!admin){
+        return res.status(404).json({message:"Admin not found"});
+      }
+      res.json(admin);
+    } catch (error) {
+        console.log("error in admin.js:",error);  
+        res.status(500).json({ error: error.message });
+    }
+} )
 
 module.exports = router;

@@ -30,7 +30,7 @@ const Settings = () => {
 
   const fetchProfileData = async () => {
     try {
-      const response = await api.get('/auth/profile');
+      const response = await api.get('/admin/profile');
       const { name, email } = response.data;
       setProfileData(prev => ({ ...prev, name, email }));
     } catch {
@@ -40,7 +40,7 @@ const Settings = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await api.get('/api/settings/customers');
+      const response = await api.get('customers/getallcustomers');
       setCustomers(response.data);
     } catch {
       setErrorMessage('Failed to fetch customers');
@@ -49,7 +49,7 @@ const Settings = () => {
 
   const fetchAdmins = async () => {
     try {
-      const response = await api.get('/settings/admins');
+      const response = await api.get('/admin/getalladmins');
       setAdmins(response.data);
     } catch {
       setErrorMessage('Failed to fetch admins');
@@ -63,7 +63,7 @@ const Settings = () => {
     setErrorMessage('');
 
     try {
-      await api.put('/api/settings/profile', {
+      await api.put('/admin/update-password', {
         name: profileData.name,
         email: profileData.email,
         admin:true,
@@ -86,7 +86,7 @@ const Settings = () => {
 
   const handleResetPassword = async (customerId) => {
     try {
-      await api.post(`/api/settings/customers/${customerId}/reset-password`);
+      await api.post(`/settings/customers/${customerId}/reset-password`, { password: 'password@12345' });
       setSuccessMessage('Password reset initiated successfully');
       setShowResetPasswordModal(false);
     } catch {
@@ -96,7 +96,7 @@ const Settings = () => {
 
   const handleUpdateAdmin = async (adminId, data) => {
     try {
-      await api.put(`/settings/admins/${adminId}`, data);
+      await api.put(`settings/updateadmin/${adminId}`, data);
       setSuccessMessage('Admin updated successfully');
       fetchAdmins();
     } catch {
