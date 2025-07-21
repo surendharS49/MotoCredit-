@@ -136,7 +136,7 @@ const CreateLoan = () => {
 
             setLoanData(prev => ({
                 ...prev,
-                emiAmount: roundedEMI.toFixed(2)
+                emiAmount: roundedEMI.toFixed(0)
             }));
         }
     };
