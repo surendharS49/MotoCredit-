@@ -45,6 +45,7 @@ router.post('/createloan', verifyToken, async (req, res) => {
     }
 
     const loanId = await generateLoanId();
+    const amountPaid = 0;
     const nextPaymentDate = new Date(startDate || Date.now());
     nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
 
@@ -61,7 +62,8 @@ router.post('/createloan', verifyToken, async (req, res) => {
       processingFee,
       status,
       nextPaymentDate,
-      guarantorId
+      guarantorId,
+      amountPaid
     });
 
     const savedLoan = await loan.save();

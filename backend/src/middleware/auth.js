@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
+const Customer = require('../models/Customer');
 
 const verifyToken = async (req, res, next) => {
     try {
@@ -31,14 +32,18 @@ const verifyToken = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log('Token decoded successfully:', decoded);
         
-        const admin = await Admin.findById(decoded.id);
-        if (!admin) {
-            console.error('Admin not found for ID:', decoded.id);
-            return res.status(401).json({ message: 'Invalid token - user not found' });
+        let user = await Admin.findById(decoded.id);
+        if (!user) {
+            user = await Customer.findById(decoded.id);
+            if (!user) {
+                console.error('User not found for ID:', decoded.id);
+                return res.status(401).json({ message: 'Invalid token - user not found' });
+            }
+            console.log('Customer found:', user.email);
+        } else {
+            console.log('Admin found:', user.email);
         }
-
-        console.log('Admin found:', admin.email);
-        req.user = admin;
+        req.user = user;
         next();
     } catch (error) {
         console.log("error in auth.js:",error);

@@ -104,7 +104,7 @@ router.post('/:loanId', verifyToken, async (req, res) => {
             if (loandetail) {
                 let nextPaymentDate = new Date(loandetail.nextPaymentDate);
                 nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
-                await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate });
+                await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate ,amountPaid: loandetail.amountPaid + amount});
             }
 
             await Loan.findOneAndUpdate({ loanId }, { $push: { payments: paymentId } });
@@ -136,7 +136,7 @@ router.put('/:loanId', verifyToken, async (req, res) => {
         const payment = await Payment.findOneAndUpdate(
             { loanId, installmentNumber },
             { amount, status, paidDate, dueDate, paymentMethod },
-            { new: true }
+                        { new: true }
         );
 
         const auditLog = new AuditLog({
@@ -161,6 +161,7 @@ router.delete('/:loanId', verifyToken, async (req, res) => {
     try {
         const { loanId } = req.params;
         await Payment.deleteMany({ loanId });
+        await Loan.findOneAndUpdate({ loanId }, { amountPaid: 0 ,payments: []});
         res.json({ message: 'All payments deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -181,7 +182,7 @@ router.delete(`/revertpayment/:paymentId`, verifyToken, async (req, res) => {
             return res.status(404).json({ message: 'Payment not found' });
         }
 
-        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } });
+        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } ,amountPaid: loan.amountPaid - deletedPayment.amount});
 
         const auditLog = new AuditLog({
             action: 'PAYMENT_REVERTED',
@@ -214,7 +215,7 @@ router.delete('/:loanId/payment/:paymentId', verifyToken, async (req, res) => {
             return res.status(404).json({ message: 'Payment not found' });
         }
 
-        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } });
+        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } ,amountPaid: loan.amountPaid - deletedPayment.amount});
 
         const auditLog = new AuditLog({
             action: 'PAYMENT_REVERTED',

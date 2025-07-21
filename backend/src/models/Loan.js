@@ -55,6 +55,10 @@ const loanSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    amountPaid: {
+        type: Number,
+        required: true
+    },
     payments: {
         type: Array,
         default: []

@@ -3,6 +3,7 @@ const router = express.Router();
 const Customer = require('../models/Customer');
 const { verifyToken } = require('../middleware/auth');
 const { generateCustomerId } = require('../utils/idGenerator');
+const jwt = require('jsonwebtoken');
 
 // Create new customer
 router.post('/createcustomer', verifyToken, async (req, res) => {
@@ -42,7 +43,7 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
     
     const newCustomer = new Customer({
       customerId,
-      name, email, phone, address, city,
+      name, email, phone, password,address, city,
       state, zip, country, dob, gender,
       aadhar, pan, drivingLicense,
       role: 'customer'
@@ -61,6 +62,24 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
       error: err.message 
     });
   }
+});
+
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const customer = await Customer.findOne({ email });
+        if (!customer) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        if (customer.password !== password) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        const token = jwt.sign({ id: customer._id, email: customer.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token, customer });
+    } catch (err) {
+        console.log("error in customer.js:",err);  
+        res.status(500).json({ message: err.message });
+    }
 });
 
 // Get all customers
