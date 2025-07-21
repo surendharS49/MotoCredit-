@@ -50,7 +50,7 @@ function Login() {
       const errorMessage = error.response?.data?.message || 'Invalid email or password';
       setError(errorMessage);
     } finally {
-      //setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
