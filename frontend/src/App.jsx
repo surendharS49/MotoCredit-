@@ -10,6 +10,12 @@ import { Reports } from "./features/reports/components";
 import { Payment } from "./features/payment/components";
 import { Settings } from "./features/settings/components";
 import { setupAuthHeaders, isAuthenticated } from './utils/api/auth';
+import CustomerDashboard from "../customer_view/customerdashboard";
+import PaymentHistory from "../customer_view/paymenthistory";
+import Customer from "../customer_view/customers";
+import EditCustomerVehicle from "../customer_view/editvehicles";
+import CustomerVehicles from "../customer_view/vehicles";
+import CustomerSetting from "../customer_view/customersetting";
 
 function App() {
   // Initialize auth headers on app load
@@ -17,7 +23,7 @@ function App() {
     console.log('App mounted, setting up auth headers');
     setupAuthHeaders();
     
-    // Log auth state on mount
+    // Log auth state on mount  
     console.log('Initial auth state:', {
       hasToken: !!localStorage.getItem('adminToken'),
       isAuthenticated: isAuthenticated()
@@ -48,6 +54,15 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/payments/:loanId" element={<Payment />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/customers/dashboard" element={<CustomerDashboard />} />
+          <Route path="/customers/payment-history" element={<PaymentHistory />} />
+          <Route path="/customers/customers" element={<Customer />} />
+          <Route path="/customers/vehicles/edit/:vehicleId" element={<EditCustomerVehicle />} />
+          <Route path="/customers/vehicles" element={<CustomerVehicles />} />
+          <Route path="/customers/settings" element={<CustomerSetting />} />
+          {/* <Route path="/customerloans" element={<CustomerLoans />} />
+          <Route path="/customervehicles" element={<CustomerVehicles />} />
+          <Route path="/customersettings" element={<CustomerSettings />} /> */}
         </Route>
         
         {/* 404 Route */}

@@ -84,6 +84,15 @@ router.get('/getallloans', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/getloansbycustomerid/:customerId', verifyToken, async (req, res) => {
+  try {
+    const loans = await Loan.find({ customerId: req.params.customerId });
+    res.json(loans);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get loan by ID
 router.get('/getloan/:id', verifyToken, async (req, res) => {
   try {

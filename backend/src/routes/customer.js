@@ -82,6 +82,24 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/changepassword/:customerId', verifyToken, async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const customer = await Customer.findOne({ customerId: req.params.customerId });
+        if (!customer) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        if (customer.password !== oldPassword) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        customer.password = newPassword;
+        await customer.save();
+        res.json({ message: 'Password changed successfully' });
+    } catch (err) {
+        console.log("error in customer.js:",err);  
+        res.status(500).json({ message: err.message });
+    }
+});
 // Get all customers
 router.get('/getallcustomers', verifyToken, async (req, res) => {
   try {

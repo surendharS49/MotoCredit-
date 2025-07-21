@@ -68,7 +68,7 @@ api.interceptors.response.use(
       if (originalRequest._retry) {
         console.log('⚠️ Already retried request, logging out...');
         clearAuth();
-        window.location.href = '/auth/admin?session=expired';
+       // window.location.href = '/auth/admin?session=expired';
         return Promise.reject(error);
       }
       
@@ -102,7 +102,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         console.error('❌ Token refresh failed:', refreshError);
         clearAuth();
-        window.location.href = '/auth/admin?session=expired';
+        //window.location.href = '/auth/admin?session=expired';
         return Promise.reject(refreshError);
       }
     }

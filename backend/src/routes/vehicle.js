@@ -3,6 +3,8 @@ const router = express.Router();
 const Vehicle = require('../models/Vehicle');
 const { verifyToken } = require('../middleware/auth');
 const { generateVehicleId } = require('../utils/idGenerator');
+const Loan = require('../models/Loan');
+const Customer = require('../models/Customer');
 
 router.post('/addvehicle', verifyToken, async (req, res) => {
     try {
@@ -72,6 +74,19 @@ router.get('/getallvehicles', verifyToken, async (req, res) => {
         res.json(vehicles);
     } catch (error) {
         console.log("error in vehicle.js:",error);  
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/getvehicles/:customerId', verifyToken, async (req, res) => {
+    try {
+        const loans = await Loan.find({ customerId: req.params.customerId });
+        const vehicles = await Vehicle.find({
+            vehicleId: { $in: loans.map(loan => loan.vehicleId) }
+        });
+        res.json(vehicles);
+    } catch (error) {
+        console.log("error in vehicle.js:", error);  
         res.status(500).json({ message: error.message });
     }
 });

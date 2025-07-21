@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./dashboard.css";
 import { FaUsers, FaMoneyCheckAlt, FaWallet, FaExclamationCircle } from "react-icons/fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Customers } from "../features/customer/components";
 import { Navbar } from "../components/layout";
 import api from "../utils/api/axiosConfig";
 

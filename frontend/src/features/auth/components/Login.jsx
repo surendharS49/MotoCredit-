@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../assets/motocredit.png';
-
+import api from '../../../utils/api/axiosConfig';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function Login() {
@@ -23,15 +23,34 @@ function Login() {
     setError('');
 
     try {
-      // Here you would typically manufacturer your API call
-      // For now, we'll simulate a login
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigate('/dashboard');
-    } catch {
-
-      setError('Invalid email or password');
+      const response = await api.post('/customers/login', { email, password });
+      console.log('Login response:', response.data);
+      
+      if (response.data.token) {
+        // Store the access token
+        localStorage.setItem('token', response.data.token);
+        
+        // Store the refresh token if available
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+        }
+        
+        // Store customer details
+        if (response.data.customer) {
+          localStorage.setItem('customerDetails', JSON.stringify(response.data.customer));
+        }
+        
+        // Redirect to dashboard
+        navigate('/customers/dashboard');
+      } else {
+        throw new Error('No token received');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.message || 'Invalid email or password';
+      setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      //setIsLoading(false);
     }
   };
 
