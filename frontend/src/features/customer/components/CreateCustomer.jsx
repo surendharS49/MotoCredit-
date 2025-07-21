@@ -55,7 +55,7 @@ const CreateCustomer = () => {
   };
 
   const handleCancel = () => {
-    navigate('/admin/customers');
+    navigate('/customers');
   };
 
   return (
