@@ -39,6 +39,7 @@ const loanRoutes = require('./src/routes/loan');
 const paymentRoutes = require('./src/features/admin/payments/paymentsroutes');
 const settingsRoutes = require('./src/routes/settings');
 const auditLogRoutes = require('./src/features/admin/payments/auditlogroutes');
+const feedbackRoutes = require('./src/routes/feedback');
 
 app.use('/api/admin', adminRoutes);
 app.use('/api/customers', customerRoutes);
@@ -47,7 +48,7 @@ app.use('/api/loans', loanRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/settings', settingsRoutes);
-
+app.use('/api/feedback', feedbackRoutes);
 
 // Connect to MongoDB (non-blocking)
 connectDB()

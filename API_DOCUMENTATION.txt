@@ -1,0 +1,178 @@
+MotoCredit API Documentation
+===========================
+
+Authentication
+--------------
+Most endpoints require a JWT token in the `Authorization` header as `Bearer <token>`. Exceptions: login and registration endpoints.
+
+
+Admin Endpoints
+---------------
+
+Register Admin
+- POST `/api/admin/register`
+- Body: `{ name, username, email, password, role }`
+- Response: `{ message, token }`
+
+Login Admin
+- POST `/api/admin/login`
+- Body: `{ email, password }`
+- Response: `{ token, user }`
+
+Update Admin Password
+- PUT `/api/admin/update-password`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ currentPassword, newPassword }`
+- Response: `{ message }`
+
+Get Admin Profile
+- GET `/api/admin/profile`
+- Headers: `Authorization: Bearer <token>`
+- Response: `admin object`
+
+Verify Admin Token
+- GET `/api/admin/verify`
+- Headers: `Authorization: Bearer <token>`
+- Response: `{ message, user }`
+
+
+Customer Endpoints
+------------------
+
+Register Customer
+- POST `/api/customer/createcustomer`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ name, email, phone, ... }`
+- Response: `customer object`
+
+Login Customer
+- POST `/api/customer/login`
+- Body: `{ email, password }`
+- Response: `{ token, customer }`
+
+Change Customer Password
+- POST `/api/customer/changepassword/:customerId`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ oldPassword, newPassword }`
+- Response: `{ message }`
+
+Get All Customers
+- GET `/api/customer/getallcustomers`
+- Headers: `Authorization: Bearer <token>`
+- Response: `[customer objects]`
+
+Get Customer by ID
+- GET `/api/customer/getcustomer/:id`
+- Headers: `Authorization: Bearer <token>`
+- Response: `customer object`
+
+Update Customer
+- PUT `/api/customer/updatecustomer/:id`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ ...fields to update }`
+- Response: `customer object`
+
+Delete Customer
+- DELETE `/api/customer/deletecustomer/:id`
+- Headers: `Authorization: Bearer <token>`
+- Response: `{ message }`
+
+
+Vehicle Endpoints
+-----------------
+
+Add Vehicle
+- POST `/api/vehicle/addvehicle`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ registrationNumber, manufacturer, ... }`
+- Response: `vehicle object`
+
+Get All Vehicles
+- GET `/api/vehicle/getallvehicles`
+- Headers: `Authorization: Bearer <token>`
+- Response: `[vehicle objects]`
+
+Get Vehicles by Customer
+- GET `/api/vehicle/getvehicles/:customerId`
+- Headers: `Authorization: Bearer <token>`
+- Response: `[vehicle objects]`
+
+Get Vehicle by Vehicle ID
+- GET `/api/vehicle/getvehicle/:vehicleId`
+- Headers: `Authorization: Bearer <token>`
+- Response: `vehicle object`
+
+Get Vehicle by Mongo ID
+- GET `/api/vehicle/getvehicle/:id`
+- Headers: `Authorization: Bearer <token>`
+- Response: `vehicle object`
+
+Update Vehicle
+- PUT `/api/vehicle/updatevehicle/:id`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ ...fields to update }`
+- Response: `vehicle object`
+
+Delete Vehicle
+- DELETE `/api/vehicle/deletevehicle/:id`
+- Headers: `Authorization: Bearer <token>`
+- Response: `{ message }`
+
+
+Loan Endpoints
+--------------
+
+Create Loan
+- POST `/api/loan/createloan`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ customerId, vehicleId, loanAmount, ... }`
+- Response: `loan object`
+
+Get All Loans
+- GET `/api/loan/getallloans`
+- Headers: `Authorization: Bearer <token>`
+- Response: `[loan objects]`
+
+Get Loans by Customer ID
+- GET `/api/loan/getloansbycustomerid/:customerId`
+- Headers: `Authorization: Bearer <token>`
+- Response: `[loan objects]`
+
+Get Loan by ID
+- GET `/api/loan/getloan/:id`
+- Headers: `Authorization: Bearer <token>`
+- Response: `loan object`
+
+Update Loan
+- PUT `/api/loan/updateloan/:id`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ ...fields to update }`
+- Response: `loan object`
+
+
+Settings Endpoints
+------------------
+
+Get Settings
+- GET `/api/settings/`
+- Headers: `Authorization: Bearer <token>`
+- Response: `{ message: 'Settings endpoint' }`
+
+Update Admin
+- PUT `/api/settings/updateadmin/:id`
+- Headers: `Authorization: Bearer <token>`
+- Body: `{ name, email, role }`
+- Response: `admin object`
+
+
+Usage Flow
+----------
+
+1. Admin/Customer Registration & Login:
+   Register, then login to receive a JWT token.
+2. Authenticated Requests:
+   Use the JWT token in the `Authorization` header for all subsequent requests.
+3. CRUD Operations:
+   Use the respective endpoints for creating, reading, updating, and deleting customers, vehicles, and loans.
+4. Settings & Profile:
+   Use settings/profile endpoints for admin management.

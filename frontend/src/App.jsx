@@ -10,12 +10,14 @@ import { Reports } from "./features/reports/components";
 import { Payment } from "./features/payment/components";
 import { Settings } from "./features/settings/components";
 import { setupAuthHeaders, isAuthenticated } from './utils/api/auth';
+import NotFound from "./pages/NotFound";
 import CustomerDashboard from "../customer_view/customerdashboard";
 import PaymentHistory from "../customer_view/paymenthistory";
 import Customer from "../customer_view/customers";
 import EditCustomerVehicle from "../customer_view/editvehicles";
 import CustomerVehicles from "../customer_view/vehicles";
 import CustomerSetting from "../customer_view/customersetting";
+import ContactPage from "../customer_view/contact_page";
 
 function App() {
   // Initialize auth headers on app load
@@ -58,15 +60,18 @@ function App() {
           <Route path="/customers/payment-history" element={<PaymentHistory />} />
           <Route path="/customers/customers" element={<Customer />} />
           <Route path="/customers/vehicles/edit/:vehicleId" element={<EditCustomerVehicle />} />
+          {/* 404 Not Found Route */}
+          <Route path="*" element={<NotFound />} />
           <Route path="/customers/vehicles" element={<CustomerVehicles />} />
           <Route path="/customers/settings" element={<CustomerSetting />} />
+          <Route path="/customers/contact" element={<ContactPage />} />
           {/* <Route path="/customerloans" element={<CustomerLoans />} />
           <Route path="/customervehicles" element={<CustomerVehicles />} />
           <Route path="/customersettings" element={<CustomerSettings />} /> */}
         </Route>
         
         {/* 404 Route */}
-        <Route path="*" element={<Login />} />
+        {/* //<Route path="*" element={<Login />} /> */}
       </Routes>
     </>
   );

@@ -3,6 +3,7 @@ const Vehicle = require('../models/Vehicle');
 const Loan = require('../models/Loan');
 const Payment = require('../models/Payment');
 const Guarantor = require('../models/Guarantor');
+const Feedback = require('../models/feedback'); 
 
 const generateCustomerId = async () => {
     console.log("Generating customer ID...");
@@ -61,10 +62,22 @@ const generateGuarantorId = async () => {
     return guarantorId;
 };
 
+const generateFeedbackId = async () => {
+    console.log("Generating feedback ID...");
+    let feedbackId;
+    let exists = true;
+    while (exists) {
+        feedbackId = 'FEED-'+Math.floor(10000 + Math.random() * 90000);
+        exists = await Feedback.findOne({ feedbackId });
+    }
+    return feedbackId;
+};
+
 module.exports = {
     generateCustomerId,
     generateVehicleId,
     generateLoanId,
     generatePaymentId,
-    generateGuarantorId
+    generateGuarantorId,
+    generateFeedbackId
 }; 

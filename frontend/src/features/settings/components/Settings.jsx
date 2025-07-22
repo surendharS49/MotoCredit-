@@ -22,11 +22,28 @@ const Settings = () => {
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
+  // Feedback state
+  const [feedback, setFeedback] = useState([]);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [showFeedbackStatusModal, setShowFeedbackStatusModal] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState('');
+
   useEffect(() => {
     fetchProfileData();
     fetchCustomers();
     fetchAdmins();
+    fetchFeedbacks();
   }, []);
+
+  // Fetch feedbacks
+  const fetchFeedbacks = async () => {
+    try {
+      const response = await api.get('/feedback/getallfeedback');
+      setFeedback(response.data);
+    } catch {
+      setErrorMessage('Failed to fetch feedbacks');
+    }
+  };
 
   const fetchProfileData = async () => {
     try {
@@ -145,6 +162,17 @@ const Settings = () => {
             >
               <FaUserShield className="mr-2" />
               <span className="font-medium">Admins</span>
+            </button>
+            <button
+              className={`flex items-center px-6 py-4 focus:outline-none transition-colors duration-200 ${
+                activeTab === 'feedback'
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              onClick={() => setActiveTab('feedback')}
+            >
+              <FaUserShield className="mr-2" />
+              <span className="font-medium">Feedback</span>
             </button>
           </div>
 
@@ -333,6 +361,46 @@ const Settings = () => {
                 </table>
               </div>
             )}
+            {activeTab === 'feedback' && (
+  <div className="overflow-hidden rounded-lg border border-gray-200">
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {feedback.map((fb) => (
+          <tr key={fb._id} className="hover:bg-gray-50 transition-colors duration-200">
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{fb.name}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fb.email}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fb.phone}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fb.message}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fb.status}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <button
+                onClick={() => {
+                  setSelectedFeedback(fb);
+                  setFeedbackStatus(fb.status || 'Pending');
+                  setShowFeedbackStatusModal(true);
+                }}
+                className="flex items-center text-blue-600 hover:text-blue-900 transition-colors duration-200"
+              >
+                <FaKey className="mr-2" />
+                Change Status
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
           </div>
         </div>
       </div>
@@ -356,6 +424,52 @@ const Settings = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Confirm Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Status Modal */}
+      {showFeedbackStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Update Feedback Status</h3>
+            <p className="mb-4">Update status for <strong>{selectedFeedback?.name}</strong> ({selectedFeedback?.email})</p>
+            <select
+              value={feedbackStatus}
+              onChange={e => setFeedbackStatus(e.target.value)}
+              className="w-full mb-4 px-4 py-2 border rounded-lg"
+            >
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowFeedbackStatusModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await api.put(`/feedback/updatefeedback/${selectedFeedback._id}`, {
+                      ...selectedFeedback,
+                      status: feedbackStatus,
+                    });
+                    setSuccessMessage('Feedback status updated successfully');
+                    setShowFeedbackStatusModal(false);
+                    fetchFeedbacks();
+                  } catch {
+                    setErrorMessage('Failed to update feedback status');
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Update Status
               </button>
             </div>
           </div>

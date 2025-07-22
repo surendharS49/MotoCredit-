@@ -264,7 +264,7 @@ const CustomerDashboard = () => {
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Recent Transactions</h2>
                                 <button 
-                                    onClick={() => navigate('/paymenthistory')}
+                                    onClick={() => navigate('/customers/payment-history')}
                                     className="text-sm text-blue-600 hover:text-blue-800"
                                 >
                                     View All
@@ -323,7 +323,7 @@ const CustomerDashboard = () => {
                         <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
                             <h3 className="text-lg font-semibold mb-3">Need Help?</h3>
                             <p className="text-sm text-gray-600 mb-4">Our support team is here to help you with any questions about your loan or account.</p>
-                            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors text-sm">
+                            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors text-sm" onClick={() => navigate('/customers/contact')}    >
                                 Contact Support
                             </button>
                         </div>
