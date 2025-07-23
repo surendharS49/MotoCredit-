@@ -16,7 +16,6 @@ router.post('/createloan', verifyToken, async (req, res) => {
       tenure,
       interestRate,
       paymentFrequency,
-      startDate,
       emiAmount,
       processingFee,
       status,
@@ -25,6 +24,8 @@ router.post('/createloan', verifyToken, async (req, res) => {
       guarantorAddress,
       guarantorRelation
     } = req.body;
+
+    const startDate=req.body.startDate.split('T')[0];
 
     let guarantor = await Guarantor.findOne({ phone: guarantorPhone });
     let guarantorId;
@@ -46,8 +47,10 @@ router.post('/createloan', verifyToken, async (req, res) => {
 
     const loanId = await generateLoanId();
     const amountPaid = 0;
-    const nextPaymentDate = new Date(startDate || Date.now());
+    let nextPaymentDate = new Date(startDate);
     nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
+    nextPaymentDate=nextPaymentDate.toISOString().split('T')[0]; 
+    const totalInstallments = tenure / (paymentFrequency === 'Monthly' ? 1 : paymentFrequency === 'Quarterly' ? 3 : 6);
 
     const loan = new Loan({
       loanId,
@@ -63,8 +66,11 @@ router.post('/createloan', verifyToken, async (req, res) => {
       status,
       nextPaymentDate,
       startDate,
+      totalInstallments,
       guarantorId,
-      amountPaid
+      amountPaid,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
 
     const savedLoan = await loan.save();

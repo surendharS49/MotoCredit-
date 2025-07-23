@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../../../utils/api/axiosConfig';
+import api from '../src/utils/api/axiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Navbar } from '../../../components/layout';
-import { Modal } from '../../../components/common';
+import Navbar from './navbar';
+import { Modal } from '../src/components/common';
 import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaMoneyBillWave, FaCalendarAlt, FaClock, FaHistory } from 'react-icons/fa';
 
 const PENALTY_PER_DAY = 75;
 const CURRENT_DATE = new Date();
 
-const Payment = () => {
+const CustomerPayment = () => {
     const { loanId } = useParams();
     const navigate = useNavigate();
     const [loanDetails, setLoanDetails] = useState(null);
@@ -240,7 +240,7 @@ const Payment = () => {
         );
 
         // Navigate to confirmation page with all required payment details
-        navigate('/confirm-payment', {
+        navigate('/customers/confirm-payment', {
             state: {
                 installmentNumber,
                 paymentAmount,
@@ -255,30 +255,7 @@ const Payment = () => {
         // All further validation and payment logic is now handled in ConfirmPayment.jsx
     };
 
-    const handleRevertPayment = async (payment) => {
-        const reason = prompt('Please provide a reason for reverting this payment:');
-        if (reason) {
-            showPaymentModal(
-                'warning',
-                'Confirm Revert',
-                'Are you sure you want to revert this payment? This action cannot be undone.',
-                async () => {
-                    try {
-                        await api.delete(`/payments/revertpayment/${payment.paymentId}`, {
-                            data: {
-                                revertedBy: 'Admin',
-                                revertReason: reason,
-                            }
-                        });
-                        showPaymentModal('success', 'Payment Reverted', 'The payment has been reverted.');
-                        await fetchLoanAndPayments();
-                    } catch (err) {
-                        showPaymentModal('error', 'Revert Failed', err.response?.data?.message || 'There was an error reverting the payment.');
-                    }
-                }
-            );
-        }
-    };
+    
 
     // This version fixes schedule: 1st EMI at start date, second a month later, etc.
     const calculateDueDate = (installmentNumber) => {
@@ -364,7 +341,7 @@ const Payment = () => {
                     <div className="layout-content-container container mx-auto flex flex-1 flex-col">
                         <div className="flex items-center gap-3 p-4">
                             <button 
-                                onClick={() => navigate('/loans')}
+                                onClick={() => navigate('/customers/dashboard')}
                                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                             >
                                 <FaArrowLeft size={14} />
@@ -514,15 +491,7 @@ const Payment = () => {
                                                                                     Pay Now
                                                                                 </button>
                                                                             )}
-                                                                            {payment && payment.status && payment.status.toLowerCase() === 'paid' && (
-                                                                                <button
-                                                                                    onClick={() => handleRevertPayment(payment)}
-                                                                                    className="rounded-lg bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200 transition flex items-center gap-1"
-                                                                                >
-                                                                                    <FaExclamationCircle size={12} />
-                                                                                    Revert
-                                                                                </button>
-                                                                            )}
+                                                                            
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -607,4 +576,4 @@ const Payment = () => {
     );
 };
 
-export default Payment;
+export default CustomerPayment;

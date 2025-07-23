@@ -99,7 +99,7 @@ router.get('/getvehicle/:vehicleId', verifyToken, async (req, res) => {
             vehicle=await Vehicle.findOne({ _id: req.params.id });
         }
         if (!vehicle) {
-            return res.status(404).json({ message: 'Vehicle not found' });
+            return res.status(404).json({ message: 'Vehicle not found error in get vehicle by vehicleId'});
         }
         res.json(vehicle);
     } catch (error) {
@@ -109,11 +109,11 @@ router.get('/getvehicle/:vehicleId', verifyToken, async (req, res) => {
 });
 
 // Get vehicle by ID
-router.get('/getvehicle/:id', verifyToken, async (req, res) => {
+router.get('/getvehiclebyid/:id', verifyToken, async (req, res) => {
     try {
         const vehicle = await Vehicle.findOne({ _id: req.params.id });
         if (!vehicle) {
-            return res.status(404).json({ message: 'Vehicle not found' });
+            return res.status(404).json({ message: 'Vehicle not found error in get vehicle by id' });
         }
         res.json(vehicle);
     } catch (error) {
@@ -131,7 +131,7 @@ router.put('/updatevehicle/:id', verifyToken, async (req, res) => {
             { new: true }
         );
         if (!vehicle) {
-            return res.status(404).json({ message: 'Vehicle not found' });
+            return res.status(404).json({ message: 'Vehicle not found error in update vehicle' });
         }
         res.json(vehicle);
     } catch (error) {
@@ -145,7 +145,7 @@ router.delete('/deletevehicle/:id', verifyToken, async (req, res) => {
     try {
         const vehicle = await Vehicle.findOneAndDelete({ _id: req.params.id });
         if (!vehicle) {
-            return res.status(404).json({ message: 'Vehicle not found' });
+            return res.status(404).json({ message: 'Vehicle not found error in delete vehicle' });
         }
         res.json({ message: 'Vehicle deleted successfully' });
     } catch (error) {

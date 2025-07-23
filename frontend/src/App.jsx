@@ -19,6 +19,8 @@ import EditCustomerVehicle from "../customer_view/editvehicles";
 import CustomerVehicles from "../customer_view/vehicles";
 import CustomerSetting from "../customer_view/customersetting";
 import ContactPage from "../customer_view/contact_page";
+import CustomerPayment from "../customer_view/payment";
+import CustomersConfirmPayment from "../customer_view/customersconformpayment";
 
 function App() {
   // Initialize auth headers on app load
@@ -65,6 +67,8 @@ function App() {
           {/* 404 Not Found Route */}
           <Route path="*" element={<NotFound />} />
           <Route path="/customers/vehicles" element={<CustomerVehicles />} />
+          <Route path="/customers/payment/:loanId/emi" element={<CustomerPayment />} />
+          <Route path="/customers/confirm-payment" element={<CustomersConfirmPayment />} />
           <Route path="/customers/settings" element={<CustomerSetting />} />
           <Route path="/customers/contact" element={<ContactPage />} />
           {/* <Route path="/customerloans" element={<CustomerLoans />} />

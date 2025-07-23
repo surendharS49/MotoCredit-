@@ -14,6 +14,7 @@ const Navbar = () => {
     { path: '/customers/customers', label: 'Customers' },
     { path: '/customers/payment-history', label: 'Payment History' },
     { path: '/customers/vehicles', label: 'Vehicles' },
+    {path: '/customers/contact', label: 'Contact' },
     { path: '/customers/settings', label: 'Settings' }
   ];
 

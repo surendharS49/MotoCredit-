@@ -235,7 +235,9 @@ const ViewLoan = () => {
                                         <label className="font-medium text-gray-600 capitalize mb-1">
                                             {key.replace(/([A-Z])/g, ' $1')}
                                         </label>
+
                                         {isEditing ? (
+                                            
                                             (key === 'createdAt' || key === 'updatedAt') ? (
                                                 <input
                                                     type="datetime-local"

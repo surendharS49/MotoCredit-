@@ -35,11 +35,11 @@ const loanSchema = new mongoose.Schema({
         required: true
     },
     nextPaymentDate: {
-        type: Date,
+        type: String,
         required: true
     },
     startDate: {
-        type: Date,
+        type: String,
         required: true
     },
     emiAmount: {
@@ -66,6 +66,10 @@ const loanSchema = new mongoose.Schema({
     payments: {
         type: Array,
         default: []
+    },
+    totalInstallments: {
+        type: Number,
+        required: true
     },
     createdAt: {
         type: Date,

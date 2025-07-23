@@ -21,6 +21,7 @@ const CustomerDashboard = () => {
         totalLoan: 0,
         amountPaid: 0,
         remainingAmount: 0,
+        emiAmount: 0,
         nextEmi: 0,
         dueDate: '',
         emiDay: 0,
@@ -55,6 +56,7 @@ const CustomerDashboard = () => {
             setLoanSummary({
                 totalLoan: parseFloat(loanData.loanAmount),
                 amountPaid: parseFloat(loanData.amountPaid),
+                emiAmount: parseFloat(loanData.emiAmount),
                 remainingAmount: parseFloat(loanData.loanAmount) - parseFloat(loanData.amountPaid),
                 nextEmi: parseFloat(loanData.emiAmount),
                 dueDate: loanData.nextPaymentDate,
@@ -190,7 +192,7 @@ const CustomerDashboard = () => {
                         <div className="ml-3">
                             <p className="text-sm text-yellow-700">
                                 Your next EMI of <span className="font-semibold">₹{loanSummary.nextEmi}</span> is due on <span className="font-semibold">{loanSummary.dueDate.split('T')[0]}</span>.
-                                <a href="#" className="font-medium text-yellow-700 underline hover:text-yellow-600 ml-2">
+                                <a onClick={() => navigate(`/customers/payment/${loans[selectedLoanIndex].loanId}/emi`)} className="font-medium text-yellow-700 underline hover:text-yellow-600 ml-2">
                                     Pay Now
                                 </a>
                             </p>
@@ -243,7 +245,7 @@ const CustomerDashboard = () => {
                             <div className="mt-6 grid grid-cols-3 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-500">EMI Amount</p>
-                                    <p className="font-semibold">₹12,500.00</p>
+                                    <p className="font-semibold">{loanSummary.emiAmount}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">EMI Day</p>
@@ -252,7 +254,7 @@ const CustomerDashboard = () => {
                             </div>
                             
                             <button 
-                                onClick={() => navigate('/payment/emi')}
+                                onClick={() => navigate(`/customers/payment/${loans[selectedLoanIndex].loanId}/emi`)}
                                 className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
                             >
                                 Pay EMI Now
@@ -293,15 +295,20 @@ const CustomerDashboard = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className={`font-medium ${
-                                                txn.type === 'credit' ? 'text-green-600' : 'text-gray-900'
+                                                txn.type === 'credit' ? 'text-green-600' : 'text-red-600'
                                             }`}>
                                                 {txn.type === 'credit' ? '+' : '-'}{txn.amount}
                                             </p>
                                             <div className="flex items-center justify-end text-xs text-gray-500">
-                                                {txn.status === 'completed' && (
+                                                { txn.status === 'completed' ? (
                                                     <>
                                                         <FiCheckCircle className="w-3 h-3 text-green-500 mr-1" />
                                                         <span>Completed</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FiCheckCircle className="w-3 h-3 text-red-500 mr-1" />
+                                                        <span>Reverted</span>
                                                     </>
                                                 )}
                                             </div>

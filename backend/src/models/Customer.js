@@ -11,7 +11,7 @@ const customerSchema = new mongoose.Schema({
   state: { type: String, required: true },
   zip: { type: String, required: true },
   country: { type: String, required: true },
-  dob: { type: Date, required: true },
+  dob: { type: String, required: true },
   gender: { type: String, required: true, enum: ['male', 'female', 'other'] },
   aadhar: { type: String, required: true, unique: true },
   pan: { type: String, required: true, unique: true },

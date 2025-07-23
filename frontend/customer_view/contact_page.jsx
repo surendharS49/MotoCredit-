@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Navbar from "./navbar";
 import api from "../src/utils/api/axiosConfig";
 const styles = {
   container: {
@@ -112,6 +113,8 @@ function ContactPage() {
   };
 
   return (
+    <div className="min-h-screen bg-gray-50">
+            <Navbar />
     <div style={styles.container}>
       <h2 style={styles.heading}>Contact Us</h2>
       <div style={styles.subheading}>
@@ -175,6 +178,7 @@ function ContactPage() {
         <div><strong>Phone:</strong> +91 9876543210</div>
         <div><strong>Address:</strong> 123 City Road, City, Country</div>
       </div>
+    </div>
     </div>
   );
 }

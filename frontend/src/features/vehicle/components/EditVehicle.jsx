@@ -14,7 +14,7 @@ const EditVehicle = () => {
   useEffect(() => {
     const fetchVehicle = async () => {
       try {
-        const response = await api.get(`/vehicles/getvehicle/${vehicleId}`);
+        const response = await api.get(`/vehicles/getvehiclebyid/${vehicleId}`);
         const data = response.data;
         
         if (!data) {
