@@ -11,7 +11,7 @@ async function generatePaymentId() {
     if(latestPayment.length === 0){
         const timestamp = Date.now();
     //const lastId = parseInt(latestPayment.paymentId.replace('PY-', ''), 10) || 0;
-    let nextId = 1 + Math.floor(Math.random() * 1000)*parseInt(timestamp.slice(-3)); 
+    let nextId = 1 + Math.floor(Math.random() * 1000)*parseInt(timestamp.toString().slice(-3)); 
         return `PY-${nextId.toString().padStart(4, '0')}`;
     }
     const timestamp = Date.now();

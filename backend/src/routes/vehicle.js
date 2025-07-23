@@ -78,6 +78,7 @@ router.get('/getallvehicles', verifyToken, async (req, res) => {
     }
 });
 
+
 router.get('/getvehicles/:customerId', verifyToken, async (req, res) => {
     try {
         const loans = await Loan.find({ customerId: req.params.customerId });
@@ -93,7 +94,10 @@ router.get('/getvehicles/:customerId', verifyToken, async (req, res) => {
 
 router.get('/getvehicle/:vehicleId', verifyToken, async (req, res) => {
     try {
-        const vehicle = await Vehicle.findOne({ vehicleId: req.params.vehicleId });
+        let vehicle = await Vehicle.findOne({ vehicleId: req.params.vehicleId });
+        if (!vehicle) {
+            vehicle=await Vehicle.findOne({ _id: req.params.id });
+        }
         if (!vehicle) {
             return res.status(404).json({ message: 'Vehicle not found' });
         }
