@@ -5,6 +5,7 @@ const { verifyToken } = require('../middleware/auth');
 const { generateVehicleId } = require('../utils/idGenerator');
 const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
+const mailTrigger = require('../email/mailTrigger');
 
 router.post('/addvehicle', verifyToken, async (req, res) => {
     try {
@@ -133,6 +134,31 @@ router.put('/updatevehicle/:id', verifyToken, async (req, res) => {
         if (!vehicle) {
             return res.status(404).json({ message: 'Vehicle not found error in update vehicle' });
         }
+
+        // Email trigger: Vehicle Update
+        try {
+            console.log(`[DEBUG] Vehicle updated:`, vehicle);
+            const loan = await Loan.findOne({ vehicleId: vehicle.vehicleId });
+            console.log(`[DEBUG] Found loan associated with vehicle:`, loan);
+            if (loan && loan.customerId) {
+                const customer = await Customer.findOne({ customerId: loan.customerId });
+                console.log(`[DEBUG] Found customer associated with loan:`, customer);
+                if (customer && customer.email) {
+                    console.log(`[EMAIL] Attempting to send vehicle update email to: ${customer.email}`);
+                    const subject = 'Your Vehicle Details Have Been Updated';
+                    const html = `<h1>Vehicle Updated</h1><p>Dear ${customer.name},</p><p>The details for your vehicle with registration number ${vehicle.registrationNumber} have been updated.</p><p>If you did not authorize this change, please contact us immediately.</p>`;
+                    await mailTrigger.triggerCustomEmail(customer.email, subject, html);
+                    console.log(`[EMAIL] Vehicle update email successfully triggered for: ${customer.email}`);
+                } else {
+                    console.log('[ERROR] Customer or customer email not found, cannot send vehicle update email.');
+                }
+            } else {
+                console.log('[ERROR] Loan not found for this vehicle, cannot send vehicle update email.');
+            }
+        } catch (e) {
+            console.log('[ERROR] Failed to send vehicle update email:', e);
+        }
+
         res.json(vehicle);
     } catch (error) {
         console.log("error in vehicle.js:",error);  
@@ -147,6 +173,31 @@ router.delete('/deletevehicle/:id', verifyToken, async (req, res) => {
         if (!vehicle) {
             return res.status(404).json({ message: 'Vehicle not found error in delete vehicle' });
         }
+
+        // Email trigger: Vehicle Deletion
+        try {
+            console.log(`[DEBUG] Vehicle deleted:`, vehicle);
+            const loan = await Loan.findOne({ vehicleId: vehicle.vehicleId });
+            console.log(`[DEBUG] Found loan associated with vehicle for deletion:`, loan);
+            if (loan && loan.customerId) {
+                const customer = await Customer.findOne({ customerId: loan.customerId });
+                console.log(`[DEBUG] Found customer for vehicle deletion:`, customer);
+                if (customer && customer.email) {
+                    console.log(`[EMAIL] Attempting to send vehicle deletion email to: ${customer.email}`);
+                    const subject = 'A Vehicle Has Been Removed From Your Account';
+                    const html = `<h1>Vehicle Deleted</h1><p>Dear ${customer.name},</p><p>Your vehicle with registration number ${vehicle.registrationNumber} has been deleted from our records.</p><p>If you believe this is an error, please contact us immediately.</p>`;
+                    await mailTrigger.triggerCustomEmail(customer.email, subject, html);
+                    console.log(`[EMAIL] Vehicle deletion email successfully triggered for: ${customer.email}`);
+                } else {
+                    console.log('[ERROR] Customer or customer email not found, cannot send vehicle deletion email.');
+                }
+            } else {
+                console.log('[ERROR] Loan not found for this vehicle, cannot send vehicle deletion email.');
+            }
+        } catch (e) {
+            console.log('[ERROR] Failed to send vehicle deletion email:', e);
+        }
+
         res.json({ message: 'Vehicle deleted successfully' });
     } catch (error) {
         console.log("error in vehicle.js:",error);  

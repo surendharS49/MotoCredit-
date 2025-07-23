@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Customer = require('../models/Customer');
+const mailTrigger = require('../email/mailTrigger');
 const { verifyToken } = require('../middleware/auth');
 const { generateCustomerId } = require('../utils/idGenerator');
 const jwt = require('jsonwebtoken');
@@ -52,6 +53,12 @@ router.post('/createcustomer', verifyToken, async (req, res) => {
     console.log('Customer object before save:', newCustomer);
     const savedCustomer = await newCustomer.save();
     console.log('Customer saved successfully:', savedCustomer);
+    // Email trigger: Registration
+    try {
+      await mailTrigger.triggerRegistrationEmail(savedCustomer.email, savedCustomer.name);
+      console.log(`[EMAIL] Sending registration email to: ${savedCustomer.email}`);
+      console.log(`[EMAIL] Registration email sent to: ${savedCustomer.email}`);
+    } catch (e) { console.log('Failed to send registration email:', e); }
     res.status(201).json(savedCustomer);
 
   } catch (err) {
@@ -94,6 +101,11 @@ router.post('/changepassword/:customerId', verifyToken, async (req, res) => {
         }
         customer.password = newPassword;
         await customer.save();
+        // Email trigger: Password Changed
+        try {
+          await mailTrigger.triggerPasswordChangeEmail(customer.email, customer.name);
+          console.log(`[EMAIL] Password change email sent to: ${customer.email}`);
+        } catch (e) { console.log('Failed to send password change email:', e); }
         res.json({ message: 'Password changed successfully' });
     } catch (err) {
         console.log("error in customer.js:",err);  
@@ -129,14 +141,19 @@ router.get('/getcustomer/:id', verifyToken, async (req, res) => {
 router.put('/updatecustomer/:id', verifyToken, async (req, res) => {
   try {
     const customer = await Customer.findOneAndUpdate(
-      { customerId: req.params.id },
-      { ...req.body, updatedAt: Date.now() },
-      { new: true }
-    );
-    if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
-    }
-    res.json(customer);
+       { customerId: req.params.id },
+       { ...req.body, updatedAt: Date.now() },
+       { new: true }
+     );
+     if (!customer) {
+       return res.status(404).json({ message: 'Customer not found' });
+     }
+     // Email trigger: Account Update
+      try {
+        await mailTrigger.triggerAccountUpdateEmail(customer.email, customer.name, req.body);
+        console.log(`[EMAIL] Account update email sent to: ${customer.email}`);
+      } catch (e) { console.log('Failed to send account update email:', e); }
+     res.json(customer);
   } catch (err) {
     console.log("error in customer.js:",err);  
     res.status(500).json({ message: err.message });
@@ -150,6 +167,23 @@ router.delete('/deletecustomer/:id', verifyToken, async (req, res) => {
     if (!customer) {
       return res.status(404).json({ message: 'Customer not found' });
     }
+
+    // Email trigger: Account Deletion
+    try {
+      console.log(`[DEBUG] Customer found for account deletion:`, customer);
+      if (customer && customer.email) {
+        console.log(`[EMAIL] Attempting to send account deletion email to: ${customer.email}`);
+        const subject = 'Your MotoCredit Account Has Been Deleted';
+        const html = `<h1>Account Deleted</h1><p>Dear ${customer.name},</p><p>Your account with MotoCredit has been successfully deleted. We are sorry to see you go.</p>`;
+        await mailTrigger.triggerCustomEmail(customer.email, subject, html);
+        console.log(`[EMAIL] Account deletion email successfully triggered for: ${customer.email}`);
+      } else {
+        console.log('[ERROR] Customer email not found, cannot send account deletion email.');
+      }
+    } catch (e) { 
+      console.log('[ERROR] Failed to send account deletion email:', e); 
+    }
+
     res.json({ message: 'Customer deleted successfully' });
   } catch (err) {
     console.log("error in customer.js:",err);  

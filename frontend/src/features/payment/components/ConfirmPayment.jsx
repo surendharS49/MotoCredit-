@@ -99,6 +99,7 @@ useEffect(() => {
         status: "paid",
         paidDate: new Date().toISOString(),
         dueDate: dueDate,
+        paidBy: "Admin",
         paymentMethod: selectedMethod
       });
       setSuccess('Payment recorded successfully! Redirecting...');

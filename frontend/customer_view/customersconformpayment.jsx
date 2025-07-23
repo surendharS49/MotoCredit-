@@ -94,7 +94,8 @@ useEffect(() => {
         installmentNumber,
         amount: Number(paymentAmount)+Number(penaltyAmount),
         penaltyAmount: Number(penaltyAmount) || 0,
-        status: "paid",
+        status: "Received",
+        paidBy: "Customer",
         paidDate: new Date().toISOString(),
         dueDate: dueDate,
         paymentMethod: selectedMethod

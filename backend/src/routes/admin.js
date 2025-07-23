@@ -4,6 +4,7 @@ const Admin = require('../models/Admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { verifyToken } = require('../middleware/auth');
+const mailTrigger = require('../email/mailTrigger');
 
 // Utility function to compare plain and hashed passwords
 async function comparePassword(plainPassword, hashedPassword) {
@@ -33,6 +34,20 @@ router.put('/update-password', verifyToken, async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     admin.password = hashedPassword;
     await admin.save();
+
+    // Email trigger: Password Changed
+    try {
+      console.log(`[DEBUG] Admin found for password update:`, admin);
+      if (admin && admin.email) {
+        console.log(`[EMAIL] Attempting to send password change email to: ${admin.email}`);
+        await mailTrigger.triggerPasswordChangeEmail(admin.email, admin.name);
+        console.log(`[EMAIL] Password change email successfully triggered for: ${admin.email}`);
+      } else {
+        console.log('[ERROR] Admin email not found, cannot send password change email.');
+      }
+    } catch (e) { 
+      console.log('[ERROR] Failed to send password change email:', e); 
+    }
 
     res.status(200).json({ message: 'Password updated successfully' });
   } 
@@ -67,6 +82,12 @@ router.post('/register', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
+
+    // Email trigger: Registration
+    try {
+      await mailTrigger.triggerRegistrationEmail(admin.email, admin.name);
+      console.log(`[EMAIL] Sending registration email to: ${admin.email}`);
+    } catch (e) { console.log('Failed to send registration email:', e); }
 
     res.status(201).json({ message: 'Admin registered successfully', token });
   } catch (err) {

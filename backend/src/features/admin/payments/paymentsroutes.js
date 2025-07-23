@@ -115,7 +115,7 @@ router.post('/:loanId', verifyToken, async (req, res) => {
                 nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
                 await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate ,amountPaid: loandetail.amountPaid + amount});
             }
-
+            
             await Loan.findOneAndUpdate({ loanId }, { $push: { payments: paymentId } });
 
             const auditLog = new AuditLog({
