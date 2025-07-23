@@ -191,7 +191,7 @@ const CustomerDashboard = () => {
                         </div>
                         <div className="ml-3">
                             <p className="text-sm text-yellow-700">
-                                Your next EMI of <span className="font-semibold">₹{loanSummary.nextEmi}</span> is due on <span className="font-semibold">{loanSummary.dueDate.split('T')[0]}</span>.
+                                Your next EMI of <span className="font-semibold">₹{loanSummary.nextEmi}</span> is due on <span className="font-semibold">{loanSummary.dueDate}</span>.
                                 <a onClick={() => navigate(`/customers/payment/${loans[selectedLoanIndex].loanId}/emi`)} className="font-medium text-yellow-700 underline hover:text-yellow-600 ml-2">
                                     Pay Now
                                 </a>

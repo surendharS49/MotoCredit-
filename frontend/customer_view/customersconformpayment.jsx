@@ -20,7 +20,7 @@ const CustomersConfirmPayment = () => {
   } = location.state || {};
   
  
-  const [paymentAmount, setPaymentAmount] = useState(initialPaymentAmount || '');
+  const [paymentAmount, setPaymentAmount] = useState('');
   const [penaltyAmount, setPenaltyAmount] = useState(0);
   const [defaultPenalty, setDefaultPenalty] = useState(0);
   const [showPenaltyWarning, setShowPenaltyWarning] = useState(false);
@@ -30,6 +30,12 @@ const CustomersConfirmPayment = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialPaymentAmount) {
+      setPaymentAmount(initialPaymentAmount);
+    }
+  }, [initialPaymentAmount]);
 
   const PENALTY_PER_DAY = 75;
   const CURRENT_DATE = new Date().toISOString().split('T')[0];
