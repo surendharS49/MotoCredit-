@@ -7,6 +7,7 @@ MotoCredit is a full-stack web application for managing vehicle loans, customers
 ## Table of Contents
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [live demo](#live-demo)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
   - [Backend Setup](#backend-setup)
@@ -29,6 +30,16 @@ MotoCredit is a full-stack web application for managing vehicle loans, customers
 ## Tech Stack
 - **Backend:** Node.js, Express.js, MongoDB (Mongoose), JWT, dotenv
 - **Frontend:** React (Vite), React Router, TailwindCSS, Axios, Recharts
+
+## live demo
+url : [text](https://moto-credit.netlify.app/)
+- admin
+   username: admin@1234.com
+   password: Admin@1234
+
+- user
+   username: user@1234.com
+   password: User@1234
 
 ## Project Structure
 ```

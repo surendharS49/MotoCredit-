@@ -61,7 +61,7 @@ router.get('/:loanId/audit', verifyToken, async (req, res) => {
 // Create or update payment
 router.post('/:loanId', verifyToken, async (req, res) => {
     const { loanId } = req.params;
-    const { installmentNumber, amount, status, paidDate, dueDate, paymentMethod } = req.body;
+    const { installmentNumber, amount, status, paidDate, dueDate, penaltyAmount, paymentMethod } = req.body;
 
     try {
         let payment = await Payment.findOne({ loanId, installmentNumber });
@@ -71,7 +71,11 @@ router.post('/:loanId', verifyToken, async (req, res) => {
             payment.status = status;
             payment.paidDate = paidDate;
             payment.dueDate = dueDate;
+            payment.penaltyAmount = penaltyAmount;
             payment.paymentMethod = paymentMethod;
+            payment.totalAmount = amount + penaltyAmount;
+            payment.createdAt = new Date();
+            payment.updatedAt = new Date();
             await payment.save();
 
             const auditLog = new AuditLog({
@@ -88,6 +92,7 @@ router.post('/:loanId', verifyToken, async (req, res) => {
             return res.status(200).json({ message: 'Payment updated successfully', payment });
         } else {
             const paymentId = await generatePaymentId();
+            const totalAmount = amount + penaltyAmount;
             const newPayment = new Payment({
                 paymentId,
                 loanId,
@@ -96,7 +101,11 @@ router.post('/:loanId', verifyToken, async (req, res) => {
                 status,
                 paidDate,
                 dueDate,
-                paymentMethod
+                penaltyAmount,
+                paymentMethod,
+                totalAmount,
+                createdAt: new Date(),
+                updatedAt: new Date()
             });
             await newPayment.save();
 
@@ -131,11 +140,11 @@ router.post('/:loanId', verifyToken, async (req, res) => {
 router.put('/:loanId', verifyToken, async (req, res) => {
     try {
         const { loanId } = req.params;
-        const { installmentNumber, amount, status, paidDate, dueDate, paymentMethod } = req.body;
-
+        const { installmentNumber, amount, status, paidDate, dueDate, paymentMethod ,penaltyAmount } = req.body;
+        const totalAmount = amount + penaltyAmount;
         const payment = await Payment.findOneAndUpdate(
             { loanId, installmentNumber },
-            { amount, status, paidDate, dueDate, paymentMethod },
+            { amount, status, paidDate, dueDate, paymentMethod,penaltyAmount,totalAmount,updatedAt: new Date() },
                         { new: true }
         );
 

@@ -16,14 +16,14 @@ router.post('/createloan', verifyToken, async (req, res) => {
       tenure,
       interestRate,
       paymentFrequency,
+      startDate,
       emiAmount,
       processingFee,
       status,
       guarantorName,
       guarantorPhone,
       guarantorAddress,
-      guarantorRelation,
-      startDate
+      guarantorRelation
     } = req.body;
 
     let guarantor = await Guarantor.findOne({ phone: guarantorPhone });
@@ -62,6 +62,7 @@ router.post('/createloan', verifyToken, async (req, res) => {
       processingFee,
       status,
       nextPaymentDate,
+      startDate,
       guarantorId,
       amountPaid
     });

@@ -8,6 +8,7 @@ import { Customers, CreateCustomer, EditCustomer } from "./features/customer/com
 import { Vehicle, EditVehicle, AddVehicle } from "./features/vehicle/components";
 import { Reports } from "./features/reports/components";
 import { Payment } from "./features/payment/components";
+import ConfirmPayment from "./features/payment/components/ConfirmPayment";
 import { Settings } from "./features/settings/components";
 import { setupAuthHeaders, isAuthenticated } from './utils/api/auth';
 import NotFound from "./pages/NotFound";
@@ -55,6 +56,7 @@ function App() {
           <Route path="/vehicles/:vehicleId/edit" element={<EditVehicle />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/payments/:loanId" element={<Payment />} />
+          <Route path="/confirm-payment" element={<ConfirmPayment />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/customers/dashboard" element={<CustomerDashboard />} />
           <Route path="/customers/payment-history" element={<PaymentHistory />} />

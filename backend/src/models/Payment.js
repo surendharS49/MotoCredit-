@@ -18,6 +18,11 @@ const paymentSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    penaltyAmount: {
+        type: Number,
+        required: false,
+        default: 0
+    },
     status: {
         type: String,
         required: true
@@ -33,6 +38,19 @@ const paymentSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true
+    },
+    totalAmount: {
+        type: Number,
+        required: false,
+        default: 0
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
