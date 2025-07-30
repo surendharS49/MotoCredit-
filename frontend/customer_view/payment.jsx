@@ -132,7 +132,7 @@ const CustomerPayment = () => {
             pendingInstallments: 0,
             totalInstallments: 0
         };
-        const totalAmount = parseFloat(loanDetails.loanAmount);
+        const totalAmount = parseFloat(loanDetails.emiAmount) * parseInt(loanDetails.totalInstallments);
         const emiAmount = parseFloat(loanDetails.emiAmount);
         const totalInstallments = parseInt(loanDetails.totalInstallments) || 0;
         const totalPaid = payments.reduce((sum, payment) => sum + parseFloat(payment.amount), 0);
@@ -377,7 +377,7 @@ const CustomerPayment = () => {
                                                     <p className="text-base font-medium leading-normal text-[#0e141b]">Total Amount</p>
                                                 </div>
                                                 <p className="text-2xl font-bold leading-tight tracking-light text-[#0e141b]">
-                                                    {formatCurrency(loanDetails.loanAmount)}
+                                                    {formatCurrency(loanDetails.emiAmount * loanDetails.totalInstallments)}
                                                 </p>
                                                 <p className="text-sm text-[#4e7097]">
                                                     EMI: {formatCurrency(calculatePaymentStats().emiAmount)}
