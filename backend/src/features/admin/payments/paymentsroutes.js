@@ -113,7 +113,12 @@ router.post('/:loanId', verifyToken, async (req, res) => {
             if (loandetail) {
                 let nextPaymentDate = new Date(loandetail.nextPaymentDate);
                 nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
-                await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate ,amountPaid: loandetail.amountPaid + amount});
+                paymentslength = loandetail.payments.length;
+                const status = newPayment.status;
+                if( paymentslength+1 == loandetail.totalEmis) {
+                    status = 'Closed';
+                }
+                await Loan.findOneAndUpdate({ loanId }, { nextPaymentDate, status, amountPaid: loandetail.amountPaid + amount });
             }
             
             await Loan.findOneAndUpdate({ loanId }, { $push: { payments: paymentId } });
@@ -190,8 +195,8 @@ router.delete(`/revertpayment/:paymentId`, verifyToken, async (req, res) => {
         if (!deletedPayment) {
             return res.status(404).json({ message: 'Payment not found' });
         }
-
-        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } ,amountPaid: loan.amountPaid - deletedPayment.amount});
+        const status='Pending';
+        await Loan.findOneAndUpdate({ loanId }, { $pull: { payments: paymentId } ,amountPaid: loan.amountPaid - deletedPayment.amount,status});
 
         const auditLog = new AuditLog({
             action: 'PAYMENT_REVERTED',
