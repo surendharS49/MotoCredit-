@@ -174,10 +174,11 @@ router.put('/updateloan/:id', verifyToken, async (req, res) => {
       } else {
         console.log('[ERROR] Customer or customer email not found, cannot send loan update email.');
       }
+      res.json({ message: 'Loan updated successfully', loan: updatedLoan });
     } catch (e) { 
-      console.log('[ERROR] Failed to send loan update email:', e); 
+      console.log('[ERROR] Failed to update loan:', e); 
+      res.status(500).json({ message: 'Failed to update loan', error: e.message });
     }
-    res.json({message: 'Loan updated successfully' });
   }
 );
 

@@ -84,7 +84,7 @@ router.post('/:loanId', verifyToken, async (req, res) => {
                 entityId: payment.paymentId,
                 loanId,
                 details: { amount, installmentNumber, updatedPaymentDate: paidDate },
-                performedBy: req.paidBy || 'system',
+                performedBy: req.admin?.username || 'system',
                 performedAt: new Date()
             });
             await auditLog.save();
