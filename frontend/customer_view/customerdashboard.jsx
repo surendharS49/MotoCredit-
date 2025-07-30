@@ -59,7 +59,7 @@ const CustomerDashboard = () => {
                 emiAmount: parseFloat(loanData.emiAmount),
                 remainingAmount: parseFloat(loanData.loanAmount) - parseFloat(loanData.amountPaid),
                 nextEmi: parseFloat(loanData.emiAmount),
-                dueDate: loanData.nextPaymentDate.includes('05:30:00') ? loanData.nextPaymentDate.split('05:30:00')[0] : loanData.nextPaymentDate,
+                dueDate: loanData.nextPaymentDate ? new Date(loanData.nextPaymentDate).toLocaleDateString('en-IN') : 'N/A',
                 emiDay: (new Date(loanData.nextPaymentDate).getDate()),
                 loanTenure: loanData.tenure,
                 emisPaid: loanData.payments.length,
