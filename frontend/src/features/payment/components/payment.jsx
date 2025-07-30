@@ -132,7 +132,7 @@ const Payment = () => {
             pendingInstallments: 0,
             totalInstallments: 0
         };
-        const totalAmount = parseFloat(loanDetails.loanAmount);
+        const totalAmount = parseFloat(loanDetails.emiAmount) * parseInt(loanDetails.totalInstallments);
         const emiAmount = parseFloat(loanDetails.emiAmount);
         const totalInstallments = parseInt(loanDetails.totalInstallments) || 0;
         const totalPaid = payments.reduce((sum, payment) => sum + parseFloat(payment.amount), 0);
