@@ -45,11 +45,11 @@ const PaymentHistory = () => {
             const loan = loans[selectedLoanIndex];
             if (!loan) return;
             setLoanSummary({
-                totalLoan: parseFloat(loan.loanAmount),
+                totalLoan: parseFloat(loan.emiAmount) * loan.tenure,
                 amountPaid: parseFloat(loan.amountPaid),
-                remainingAmount: parseFloat(loan.loanAmount) - parseFloat(loan.amountPaid),
+                remainingAmount: parseFloat(loan.emiAmount) * loan.tenure - parseFloat(loan.amountPaid),
                 nextEmi: parseFloat(loan.emiAmount),
-                dueDate: loan.nextPaymentDate,
+                dueDate: loan.nextPaymentDate.includes('05:30:00') ? loan.nextPaymentDate.split('05:30:00')[0] : loan.nextPaymentDate,
                 emiDay: (new Date(loan.nextPaymentDate).getDate()),
                 loanTenure: loan.tenure,
                 emisPaid: loan.payments.length,
