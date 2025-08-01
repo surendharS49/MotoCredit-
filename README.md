@@ -32,7 +32,7 @@ MotoCredit is a full-stack web application for managing vehicle loans, customers
 - **Frontend:** React (Vite), React Router, TailwindCSS, Axios, Recharts
 
 ## live demo
-url : [text](https://moto-credit.netlify.app/)
+url : https://moto-credit.netlify.app/
 - admin
    username: admin@1234.com
    password: Admin@1234
