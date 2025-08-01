@@ -34,12 +34,12 @@ MotoCredit is a full-stack web application for managing vehicle loans, customers
 ## live demo
 url : https://moto-credit.netlify.app/
 - admin
-   username: admin@1234.com
-   password: Admin@1234
+   -username: admin@1234.com
+   -password: Admin@1234
 
 - user
-   username: user@1234.com
-   password: User@1234
+   -username: user@1234.com
+   -password: User@1234
 
 ## Project Structure
 ```
