@@ -253,7 +253,7 @@ const DashboardPage = () => {
               {/* Greeting */}
               <div className="flex flex-wrap justify-between gap-3 p-4">
                 <p className="min-w-72 text-[32px] font-bold leading-tight tracking-light text-[#0e141b]">
-                  {adminName ? `Welcome back, ${adminName}` : "Welcome back,"}
+                  {adminName ? `Welcome back, ${localStorage.getItem('adminName')}` : "Welcome back Admin"}
                 </p>
               </div>
 
